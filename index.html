@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Lebanon Chess Demographics</title>
 <style>
   :root {
@@ -434,7 +439,47 @@
     .stat:nth-child(3) { border-left: none; }
     .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--hairline); }
   }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 2.5rem 1rem 2.5rem; gap: 2rem; }
+
+    .dek { font-size: 1rem; }
+
+    .stat-value { font-size: 1.35rem; }
+    .stat-label { font-size: 0.78rem; }
+
+    .filter-toggle { padding: 0.9rem 0.9rem; }
+    .filter-label { font-size: 0.94rem; }
+    .filter-sub { font-size: 0.83rem; }
+
+    .chart-card { padding: 0.85rem 0.7rem 1rem; }
+    .chart-title { font-size: 1.1rem; }
+    .chart-title span { font-size: 0.85rem; }
+
+    .chart-frame { height: max(60vw, 300px); }
+
+    .legend { flex-wrap: wrap; row-gap: 0.4rem; }
+    .legend-item { font-size: 0.88rem; }
+    .legend-hint { font-size: 0.82rem; margin-left: 0; flex-basis: 100%; }
+
+    .caption { font-size: 1rem; }
+
+    .tooltip { font-size: 0.86rem; }
+    .tt-age { font-size: 0.9rem; }
+
+    .panel-head { font-size: 0.9rem; }
+    .player-row { font-size: 0.94rem; padding: 0.6rem 0.8rem; }
+    .row-id { font-size: 0.86rem; }
+    .row-title, .row-inactive { font-size: 0.75rem; }
+
+    .note h2 { font-size: 1.25rem; }
+    .note p { font-size: 1rem; }
+
+    footer p { font-size: 0.86rem; }
+  }
 </style>
+</head>
+<body>
 <section class="wrap">
   <header class="masthead">
     <p class="eyebrow">FIDE rating list &middot; July 2026 &middot; Lebanon (LBN)</p>
@@ -565,7 +610,11 @@
     var ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    var pad = { top: 14, right: 18, bottom: 40, left: 48 };
+    var isNarrow = cssWidth < 420;
+    var axisFont = isNarrow ? 14 : 12;
+    var pad = isNarrow
+      ? { top: 16, right: 12, bottom: 46, left: 54 }
+      : { top: 14, right: 18, bottom: 40, left: 48 };
     var plotW = cssWidth - pad.left - pad.right;
     var plotH = cssHeight - pad.top - pad.bottom;
 
@@ -590,11 +639,12 @@
       ctx.strokeStyle = COLORS.grid;
       ctx.lineWidth = 1;
       ctx.fillStyle = COLORS.text;
-      ctx.font = "12px -apple-system, Segoe UI, Helvetica, Arial, sans-serif";
+      ctx.font = axisFont + "px -apple-system, Segoe UI, Helvetica, Arial, sans-serif";
       ctx.textAlign = "right";
       ctx.textBaseline = "middle";
-      var yStep = yMax / 4;
-      for (var g = 0; g <= 4; g++) {
+      var yTicks = isNarrow ? 3 : 4;
+      var yStep = yMax / yTicks;
+      for (var g = 0; g <= yTicks; g++) {
         var val = g * yStep;
         var py = yToPx(val);
         ctx.beginPath();
@@ -606,15 +656,15 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      var xStep = xMax <= 40 ? 10 : 20;
+      var xStep = isNarrow ? 20 : (xMax <= 40 ? 10 : 20);
       for (var age = 0; age <= xMax; age += xStep) {
         var px = xToPx(age);
         ctx.fillText(String(age), px, pad.top + plotH + 8);
       }
-      ctx.fillText("age", pad.left + plotW / 2, pad.top + plotH + 24);
+      ctx.fillText("age", pad.left + plotW / 2, pad.top + plotH + (isNarrow ? 27 : 24));
 
       ctx.save();
-      ctx.translate(14, pad.top + plotH / 2);
+      ctx.translate(isNarrow ? 16 : 14, pad.top + plotH / 2);
       ctx.rotate(-Math.PI / 2);
       ctx.textAlign = "center";
       ctx.fillText("Number of players", 0, 0);
@@ -845,3 +895,5 @@
     window.__initLbnCharts({ players: players, currentYear: 2026 });
   });
 </script>
+</body>
+</html>
