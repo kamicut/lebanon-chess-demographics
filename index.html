@@ -145,9 +145,9 @@
     transition: transform 0.15s ease;
   }
 
-  #toggle-rated:checked + .filter-switch { background: var(--navy); }
-  #toggle-rated:checked + .filter-switch::after { transform: translateX(15px); }
-  #toggle-rated:focus-visible + .filter-switch { outline: 2px solid var(--navy); outline-offset: 2px; }
+  #toggle-include-all:checked + .filter-switch { background: var(--navy); }
+  #toggle-include-all:checked + .filter-switch::after { transform: translateX(15px); }
+  #toggle-include-all:focus-visible + .filter-switch { outline: 2px solid var(--navy); outline-offset: 2px; }
 
   .filter-label {
     font-size: 0.88rem;
@@ -444,11 +444,11 @@
 
   <section class="stats" aria-label="Summary statistics">
     <div class="stat">
-      <span class="stat-value" id="stat-total">3,137</span>
+      <span class="stat-value" id="stat-total">907</span>
       <span class="stat-label" id="stat-total-label">FIDE-registered players</span>
     </div>
     <div class="stat">
-      <span class="stat-value" id="stat-pct-female-all">11.3%</span>
+      <span class="stat-value" id="stat-pct-female-all">6.9%</span>
       <span class="stat-label" id="stat-pct-female-all-label">female</span>
     </div>
     <div class="stat">
@@ -462,9 +462,9 @@
   </section>
 
   <label class="filter-toggle">
-    <input type="checkbox" id="toggle-rated" />
+    <input type="checkbox" id="toggle-include-all" />
     <span class="filter-switch" aria-hidden="true"></span>
-    <span class="filter-label">Only show currently&#8209;active, ever&#8209;rated players<br /><span class="filter-sub">excludes players with no published rating and players FIDE flags inactive</span></span>
+    <span class="filter-label">Include all registered and inactive players<br /><span class="filter-sub">by default, shows only players who are currently active and have received at least one published rating</span></span>
   </label>
 
   <section class="chart-card">
@@ -479,14 +479,14 @@
       <span class="legend-hint">hover for details &middot; click for player list</span>
     </div>
     <div class="panel" id="panel-all"></div>
-    <p class="caption" id="caption-all">All 3,137 FIDE-registered players under Lebanon. Median age: 24 (male) vs 17 (female).</p>
+    <p class="caption" id="caption-all">The 907 players who are both currently active and have received at least one published rating. Median age: 24 (male) vs 17 (female).</p>
   </section>
 
   <section class="note">
     <h2>Reading the chart</h2>
     <p>Bars are overlapping, not stacked &mdash; the blue (male) bar shows the total for that single age, and the pink (female) bar in front shows how much of that total is female. Where pink fully covers blue, essentially all players at that age are female.</p>
     <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort &mdash; they're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
-    <p>About two&#8209;thirds of Lebanon's registered players have never received a standard, rapid, or blitz rating, and a further small share are flagged inactive by FIDE. The toggle above narrows the chart down to players who are both currently active and have actually been rated at some point.</p>
+    <p>About two&#8209;thirds of Lebanon's registered players have never received a standard, rapid, or blitz rating, and a further small share are flagged inactive by FIDE. The chart defaults to excluding both groups; use the toggle above to bring everyone back in.</p>
   </section>
 
   <footer>
@@ -807,26 +807,28 @@
   window.__initLbnCharts = function (payload) {
     var allPlayers = payload.players;
     var currentYear = payload.currentYear;
-    var toggle = document.getElementById("toggle-rated");
+    var toggle = document.getElementById("toggle-include-all");
 
     var canvas = document.getElementById("chart-all");
     var tooltip = document.getElementById("tooltip-all");
     var panel = document.getElementById("panel-all");
 
+    // default (toggle unchecked) shows only currently-active, ever-rated players;
+    // checking the toggle brings back everyone, including inactive/never-rated
     function currentPlayers() {
       if (toggle && toggle.checked) {
-        return allPlayers.filter(function (p) { return p[4] && p[6]; });
+        return allPlayers;
       }
-      return allPlayers;
+      return allPlayers.filter(function (p) { return p[4] && p[6]; });
     }
 
     function rebuildAll() {
-      var filtered = !!(toggle && toggle.checked);
+      var includeAll = !!(toggle && toggle.checked);
       var players = currentPlayers();
-      updateStats(players, filtered);
+      updateStats(players, !includeAll);
       buildChart({
         canvas: canvas, tooltip: tooltip, panel: panel,
-        players: players, showInactiveBadge: !filtered, currentYear: currentYear
+        players: players, showInactiveBadge: includeAll, currentYear: currentYear
       });
     }
 
