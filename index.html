@@ -1,0 +1,765 @@
+<title>Lebanon Chess Demographics</title>
+<style>
+  :root {
+    --bg: #E9EEF1;
+    --card: #FFFFFF;
+    --ink: #1C2531;
+    --navy: #1B2A6B;
+    --blue: #0900FB;
+    --pink: #FD1782;
+    --slate: #5B6472;
+    --hairline: #D6DEE3;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.75rem;
+  }
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--slate);
+    font-weight: 600;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 4.5vw, 2.75rem);
+    color: var(--navy);
+    text-wrap: balance;
+    line-height: 1.08;
+  }
+
+  .dek {
+    margin: 0;
+    max-width: 62ch;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    color: #37414F;
+  }
+
+  .dek a, footer a, .note a {
+    color: var(--navy);
+    text-decoration-color: var(--hairline);
+    text-underline-offset: 3px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.1rem 0.9rem;
+    text-align: center;
+    border-left: 1px solid var(--hairline);
+  }
+  .stat:first-child { border-left: none; }
+
+  .stat-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .stat-label {
+    font-size: 0.74rem;
+    color: var(--slate);
+    line-height: 1.3;
+  }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .chart-title {
+    margin: 0 0 0.7rem;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--navy);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .chart-title span {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--slate);
+  }
+
+  .chart-frame {
+    position: relative;
+    width: 100%;
+    height: min(46vw, 340px);
+  }
+
+  .chart-frame canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+  }
+
+  .tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.08s ease;
+    background: var(--ink);
+    color: #fff;
+    padding: 0.55rem 0.7rem;
+    border-radius: 7px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    box-shadow: 0 4px 14px rgba(20, 26, 39, 0.28);
+    min-width: 128px;
+  }
+
+  .tooltip .tt-age {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 0.82rem;
+  }
+
+  .tooltip .tt-year {
+    font-weight: 400;
+    color: #C7CEDA;
+  }
+
+  .tooltip .tt-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tooltip .tt-n {
+    margin-left: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .tt-swatch {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .tt-blue { background: var(--blue); }
+  .tt-pink { background: var(--pink); }
+
+  .tt-hint {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    font-size: 0.7rem;
+    color: #C7CEDA;
+    font-style: italic;
+  }
+
+  .panel {
+    display: none;
+    margin-top: 0.7rem;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #FAFBFC;
+  }
+
+  .panel.open { display: block; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: #F1F4F6;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .panel-close {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--slate);
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+  }
+  .panel-close:hover { color: var(--ink); }
+
+  .panel-list {
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.8rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.85rem;
+    border-bottom: 1px solid #EEF1F3;
+  }
+  .player-row:last-child { border-bottom: none; }
+  .player-row:hover { background: #EEF3FB; }
+
+  .row-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .row-blue { background: var(--blue); }
+  .row-pink { background: var(--pink); }
+
+  .row-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .row-title {
+    flex: none;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--navy);
+    background: #E4E9FB;
+    border-radius: 4px;
+    padding: 0.05rem 0.32rem;
+  }
+
+  .row-inactive {
+    flex: none;
+    font-size: 0.68rem;
+    color: var(--slate);
+    font-style: italic;
+  }
+
+  .row-id {
+    flex: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.78rem;
+    color: var(--slate);
+  }
+
+  .legend {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    margin-top: 0.6rem;
+    padding-left: 0.15rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    color: var(--ink);
+  }
+
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.25);
+    display: inline-block;
+  }
+  .legend-blue { background: var(--blue); }
+  .legend-pink { background: var(--pink); }
+
+  .legend-hint {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--slate);
+    font-style: italic;
+  }
+
+  .caption {
+    margin: 0.8rem 0.4rem 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: #37414F;
+  }
+
+  .note {
+    border-left: 3px solid var(--pink);
+    padding: 0.2rem 0 0.2rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .note h2 {
+    margin: 0;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 1.15rem;
+    color: var(--navy);
+  }
+
+  .note p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #37414F;
+  }
+
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding-top: 1.1rem;
+  }
+
+  footer p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--slate);
+  }
+
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat:nth-child(3) { border-left: none; }
+    .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 1px solid var(--hairline); }
+  }
+</style>
+<section class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">FIDE rating list &middot; July 2026 &middot; Lebanon (LBN)</p>
+    <h1>Who Plays Chess in Lebanon</h1>
+    <p class="dek">A local re&#8209;run of David Smerdon's <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">age &amp; gender participation charts</a>, built from the current FIDE players database.</p>
+  </header>
+
+  <section class="stats" aria-label="Summary statistics">
+    <div class="stat">
+      <span class="stat-value">3,137</span>
+      <span class="stat-label">FIDE-rated players</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">11.3%</span>
+      <span class="stat-label">female, all players</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">2,920</span>
+      <span class="stat-label">active players</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">11.5%</span>
+      <span class="stat-label">female, active players</span>
+    </div>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="chart-title">Age distribution &mdash; Lebanon<span>All FIDE-rated players</span></h2>
+    <div class="chart-frame">
+      <canvas id="chart-all"></canvas>
+      <div class="tooltip" id="tooltip-all"></div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch legend-blue"></span>Male</span>
+      <span class="legend-item"><span class="legend-swatch legend-pink"></span>Female</span>
+      <span class="legend-hint">hover for details &middot; click for player list</span>
+    </div>
+    <div class="panel" id="panel-all"></div>
+    <p class="caption">All 3,137 FIDE-rated players ever registered under Lebanon, active or not. Median age: 24 (male) vs 17 (female).</p>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="chart-title">Age distribution &mdash; Lebanon<span>Active FIDE-rated players</span></h2>
+    <div class="chart-frame">
+      <canvas id="chart-active"></canvas>
+      <div class="tooltip" id="tooltip-active"></div>
+    </div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch legend-blue"></span>Male</span>
+      <span class="legend-item"><span class="legend-swatch legend-pink"></span>Female</span>
+      <span class="legend-hint">hover for details &middot; click for player list</span>
+    </div>
+    <div class="panel" id="panel-active"></div>
+    <p class="caption">The 2,920 players FIDE currently lists as active. Median age: 23 (male) vs 16 (female). 55.7% of active female players are under 18, vs 30.8% of active males.</p>
+  </section>
+
+  <section class="note">
+    <h2>Reading the charts</h2>
+    <p>Bars are overlapping, not stacked &mdash; the blue (male) bar shows the total for that single age, and the pink (female) bar in front shows how much of that total is female. Where pink fully covers blue, essentially all players at that age are female.</p>
+    <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks, roughly half of active female players are under 18, before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort &mdash; they're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
+  </section>
+
+  <footer>
+    <p>Data: <a href="https://ratings.fide.com/download.phtml" target="_blank" rel="noopener">FIDE ratings list</a>, downloaded 2026&#8209;07&#8209;05. Age = 2026 &minus; FIDE birth year. "Active" follows FIDE's own activity flag (excludes players flagged inactive). Method after <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">davidsmerdon.com</a>.</p>
+  </footer>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  var COLORS = {
+    plot: "#FFFFFF",
+    grid: "#DCE4E8",
+    axis: "#1C2531",
+    blue: "#0900FB",
+    pink: "#FD1782",
+    text: "#1C2531"
+  };
+
+  function niceMax(v) {
+    if (v <= 10) return 10;
+    var mag = Math.pow(10, Math.floor(Math.log10(v)));
+    var norm = v / mag;
+    var step;
+    if (norm <= 2) step = 2;
+    else if (norm <= 5) step = 5;
+    else step = 10;
+    return Math.ceil(v / (step * mag / 10)) * (step * mag / 10);
+  }
+
+  // player row: [fideid, name, sex, age, active(0/1), title]
+  function histogram(players, activeOnly, maxAge) {
+    var male = new Array(maxAge + 1).fill(0);
+    var female = new Array(maxAge + 1).fill(0);
+    for (var i = 0; i < players.length; i++) {
+      var p = players[i];
+      if (activeOnly && !p[4]) continue;
+      if (p[2] === "M") male[p[3]]++; else female[p[3]]++;
+    }
+    return { male: male, female: female };
+  }
+
+  function playersAtAge(players, age, activeOnly) {
+    var out = [];
+    for (var i = 0; i < players.length; i++) {
+      var p = players[i];
+      if (p[3] !== age) continue;
+      if (activeOnly && !p[4]) continue;
+      out.push(p);
+    }
+    return out;
+  }
+
+  function buildChart(opts) {
+    var canvas = opts.canvas, tooltip = opts.tooltip, panel = opts.panel;
+    var players = opts.players, activeOnly = opts.activeOnly, currentYear = opts.currentYear;
+
+    var maxAge = 0;
+    for (var i = 0; i < players.length; i++) maxAge = Math.max(maxAge, players[i][3]);
+    var hist = histogram(players, activeOnly, maxAge);
+    var male = hist.male, female = hist.female;
+
+    var dpr = window.devicePixelRatio || 1;
+    var cssWidth = canvas.clientWidth;
+    var cssHeight = canvas.clientHeight;
+    canvas.width = cssWidth * dpr;
+    canvas.height = cssHeight * dpr;
+    var ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var pad = { top: 14, right: 18, bottom: 40, left: 48 };
+    var plotW = cssWidth - pad.left - pad.right;
+    var plotH = cssHeight - pad.top - pad.bottom;
+
+    var n = male.length;
+    var maxCount = 0;
+    for (var a = 0; a < n; a++) maxCount = Math.max(maxCount, male[a], female[a]);
+    var yMax = niceMax(maxCount * 1.08);
+
+    var xMax = Math.max(n - 1, 40);
+    function xToPx(age) { return pad.left + (age / xMax) * plotW; }
+    function yToPx(v) { return pad.top + plotH - (v / yMax) * plotH; }
+    var barW = Math.max(1, (plotW / xMax) * 0.92);
+
+    var selectedAge = -1;
+
+    function draw(hoverAge) {
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      ctx.fillStyle = COLORS.plot;
+      ctx.fillRect(pad.left, pad.top, plotW, plotH);
+
+      ctx.strokeStyle = COLORS.grid;
+      ctx.lineWidth = 1;
+      ctx.fillStyle = COLORS.text;
+      ctx.font = "12px -apple-system, Segoe UI, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      var yStep = yMax / 4;
+      for (var g = 0; g <= 4; g++) {
+        var val = g * yStep;
+        var py = yToPx(val);
+        ctx.beginPath();
+        ctx.moveTo(pad.left, py);
+        ctx.lineTo(pad.left + plotW, py);
+        ctx.stroke();
+        ctx.fillText(Math.round(val).toLocaleString(), pad.left - 8, py);
+      }
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      var xStep = xMax <= 40 ? 10 : 20;
+      for (var age = 0; age <= xMax; age += xStep) {
+        var px = xToPx(age);
+        ctx.fillText(String(age), px, pad.top + plotH + 8);
+      }
+      ctx.fillText("age", pad.left + plotW / 2, pad.top + plotH + 24);
+
+      ctx.save();
+      ctx.translate(14, pad.top + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.fillText("Number of players", 0, 0);
+      ctx.restore();
+
+      ctx.strokeStyle = COLORS.axis;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, pad.top + plotH);
+      ctx.lineTo(pad.left + plotW, pad.top + plotH);
+      ctx.stroke();
+
+      for (var a2 = 0; a2 < n; a2++) {
+        var cx = xToPx(a2);
+        var bx = cx - barW / 2;
+        var isHover = hoverAge === a2;
+        var isSelected = selectedAge === a2;
+
+        if (male[a2] > 0) {
+          var mTop = yToPx(male[a2]);
+          ctx.fillStyle = COLORS.blue;
+          ctx.globalAlpha = (isHover || isSelected) ? 1 : 0.92;
+          ctx.fillRect(bx, mTop, barW, pad.top + plotH - mTop);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 0.4;
+          ctx.strokeRect(bx, mTop, barW, pad.top + plotH - mTop);
+        }
+        if (female[a2] > 0) {
+          var fTop = yToPx(female[a2]);
+          ctx.fillStyle = COLORS.pink;
+          ctx.globalAlpha = (isHover || isSelected) ? 1 : 0.92;
+          ctx.fillRect(bx, fTop, barW, pad.top + plotH - fTop);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 0.4;
+          ctx.strokeRect(bx, fTop, barW, pad.top + plotH - fTop);
+        }
+
+        if (isSelected) {
+          ctx.strokeStyle = COLORS.axis;
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.moveTo(cx, pad.top);
+          ctx.lineTo(cx, pad.top + plotH);
+          ctx.stroke();
+        } else if (isHover) {
+          ctx.strokeStyle = "rgba(28,37,49,0.35)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.moveTo(cx, pad.top);
+          ctx.lineTo(cx, pad.top + plotH);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+    }
+
+    function ageFromEvent(evt) {
+      var rect = canvas.getBoundingClientRect();
+      var x = evt.clientX - rect.left;
+      var age = Math.round(((x - pad.left) / plotW) * xMax);
+      if (age < 0 || age >= n) return -1;
+      return age;
+    }
+
+    function renderPanel(age) {
+      if (age === -1 || (male[age] === 0 && female[age] === 0)) {
+        panel.classList.remove("open");
+        panel.innerHTML = "";
+        selectedAge = -1;
+        return;
+      }
+      selectedAge = age;
+      var list = playersAtAge(players, age, activeOnly);
+      list.sort(function (a, b) { return a[1].localeCompare(b[1]); });
+
+      var fCount = list.filter(function (p) { return p[2] === "F"; }).length;
+      var rows = list.map(function (p) {
+        var fideid = p[0], name = p[1], sex = p[2], active = p[4], title = p[5];
+        var swatchClass = sex === "F" ? "row-pink" : "row-blue";
+        var inactiveBadge = (!activeOnly && !active) ? '<span class="row-inactive">inactive</span>' : "";
+        var titleBadge = title ? '<span class="row-title">' + title + "</span>" : "";
+        return (
+          '<a class="player-row" href="https://ratings.fide.com/profile/' + fideid +
+          '" target="_blank" rel="noopener">' +
+          '<span class="row-swatch ' + swatchClass + '"></span>' +
+          '<span class="row-name">' + name + "</span>" +
+          titleBadge + inactiveBadge +
+          '<span class="row-id">' + fideid + "</span>" +
+          "</a>"
+        );
+      }).join("");
+
+      panel.innerHTML =
+        '<div class="panel-head">' +
+        "<span>Age " + age + " &middot; " + list.length + " player" + (list.length === 1 ? "" : "s") +
+        " (" + fCount + " female)</span>" +
+        '<button class="panel-close" type="button" aria-label="Close">&times;</button>' +
+        "</div>" +
+        '<div class="panel-list">' + rows + "</div>";
+      panel.classList.add("open");
+
+      panel.querySelector(".panel-close").addEventListener("click", function (e) {
+        e.stopPropagation();
+        renderPanel(-1);
+        draw(-1);
+      });
+    }
+
+    draw(-1);
+
+    canvas.addEventListener("mousemove", function (evt) {
+      var age = ageFromEvent(evt);
+      if (age === -1) {
+        tooltip.style.opacity = "0";
+        draw(-1);
+        return;
+      }
+      draw(age);
+      var birthYear = currentYear - age;
+      var m = male[age], f = female[age];
+      tooltip.innerHTML =
+        '<div class="tt-age">Age ' + age + ' <span class="tt-year">&middot; born ~' + birthYear + '</span></div>' +
+        '<div class="tt-row"><span class="tt-swatch tt-blue"></span>Male<span class="tt-n">' + m.toLocaleString() + '</span></div>' +
+        '<div class="tt-row"><span class="tt-swatch tt-pink"></span>Female<span class="tt-n">' + f.toLocaleString() + '</span></div>' +
+        '<div class="tt-hint">click to list players</div>';
+      tooltip.style.opacity = "1";
+
+      var wrapRect = canvas.parentElement.getBoundingClientRect();
+      var left = (evt.clientX - wrapRect.left) + 14;
+      var top = (evt.clientY - wrapRect.top) - 10;
+      var ttWidth = tooltip.offsetWidth || 150;
+      if (left + ttWidth > wrapRect.width) left = (evt.clientX - wrapRect.left) - ttWidth - 14;
+      tooltip.style.left = left + "px";
+      tooltip.style.top = top + "px";
+    });
+
+    canvas.addEventListener("mouseleave", function () {
+      tooltip.style.opacity = "0";
+      draw(selectedAge);
+    });
+
+    canvas.addEventListener("click", function (evt) {
+      var age = ageFromEvent(evt);
+      if (age === -1) return;
+      var next = selectedAge === age ? -1 : age;
+      renderPanel(next);
+      draw(next);
+    });
+
+    return { draw: draw, redrawSelected: function () { draw(selectedAge); } };
+  }
+
+  function debounce(fn, wait) {
+    var t;
+    return function () {
+      clearTimeout(t);
+      var args = arguments;
+      t = setTimeout(function () { fn.apply(null, args); }, wait);
+    };
+  }
+
+  window.__initLbnCharts = function (payload) {
+    var players = payload.players;
+    var currentYear = payload.currentYear;
+
+    var specs = [
+      {
+        canvas: document.getElementById("chart-all"),
+        tooltip: document.getElementById("tooltip-all"),
+        panel: document.getElementById("panel-all"),
+        activeOnly: false
+      },
+      {
+        canvas: document.getElementById("chart-active"),
+        tooltip: document.getElementById("tooltip-active"),
+        panel: document.getElementById("panel-active"),
+        activeOnly: true
+      }
+    ];
+
+    var instances = [];
+
+    function rebuildAll() {
+      instances = specs.map(function (s) {
+        return buildChart({
+          canvas: s.canvas, tooltip: s.tooltip, panel: s.panel,
+          players: players, activeOnly: s.activeOnly, currentYear: currentYear
+        });
+      });
+    }
+
+    rebuildAll();
+    window.addEventListener("resize", debounce(rebuildAll, 150));
+  };
+})();
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var players = [[5312779,"AL Hayek Khaled, Mahmoud","M",22,1,""],[5327040,"Aawar, Amid","M",18,1,""],[5324807,"Abadi, Jawad Ibrahim","M",15,1,""],[5330076,"Abadi, Kamal","M",9,1,""],[5310539,"Abbas, Ali","M",16,1,""],[5331145,"Abbas, Jawad","M",24,1,""],[5308070,"Abbas, Mohamad","M",45,1,""],[5332770,"Abbass Mustafa","M",34,1,""],[5326010,"Abbass, Reina","F",14,1,""],[5319285,"Abboud Alame, Jad","M",10,1,""],[5304750,"Abboud, Eddy","M",47,1,""],[5318246,"Abboud, Elie","M",20,1,""],[5313236,"Abboud, Elijah","M",12,1,""],[5331331,"Abboud, Elyes Elie","M",15,1,""],[5327881,"Abboud, Jean Marc","M",15,1,""],[5326028,"Abboud, Jean Marc Ralph","M",15,1,""],[5331846,"Abboud, Johnny","M",45,1,""],[5307015,"Abboud, Joseph","M",64,1,""],[5322189,"Abboud, Joseph Fouad","M",28,1,""],[5328675,"Abboud, Marc Chadi","M",25,1,""],[5309263,"Abboud, Patrick","M",31,1,""],[5324734,"Abboud, Ralph","M",43,1,""],[5332257,"Abboud, Sari","M",15,1,""],[5323274,"Abboud, Tayseer","M",28,1,""],[5304326,"Abchee, Alexandre","M",23,0,""],[5315743,"Abdal Khalik, Luay","M",22,1,""],[5321913,"Abdalah Issa, Walid Alkass","M",24,1,""],[5332800,"Abdalah, Ahmad","M",14,1,""],[5307287,"Abdalah, Haidar","M",32,1,""],[5319889,"Abdalah, Jad","M",49,1,""],[5320429,"Abdallah , Adele","F",9,1,""],[5306175,"Abdallah, Bassam","M",21,1,""],[5328616,"Abdallah, Bassel","M",32,1,""],[5322448,"Abdallah, Ibrahim","M",46,1,""],[5304911,"Abdallah, Jamal","M",69,1,""],[5311098,"Abdallah, Jennifer","F",22,0,""],[5322405,"Abdan ,Mohammad-Amin","M",21,1,""],[5313759,"Abdel Ahad, Moussa Mario","M",20,0,""],[5331021,"Abdel Khalek, Anil","M",17,1,""],[5314798,"Abdel Khalek, Assad Ayman","M",61,1,""],[5332940,"Abdel Khalek, Danil","M",15,1,""],[5315247,"Abdel Malek, Khalil Amir","M",28,1,""],[5315255,"Abdel Malek, Khalil Grace","M",23,1,""],[5314801,"Abdel Malek, Wael Adam","M",24,1,""],[5308976,"Abdel Mottaleb, Khalouf","M",31,1,""],[5315557,"Abdel Salam, Kamal","M",16,1,""],[5311209,"Abdel Sater, John Arz","M",19,1,""],[5332079,"Abdel Wahad, Khaled","M",56,1,""],[5332087,"Abdel Wahad, Mohammad","M",10,1,""],[5332907,"Abdelkader, Omar","M",25,1,""],[5306647,"Abdelkarim, Karim","M",76,1,""],[5305403,"Abdelkhalek, Nazih","M",51,1,""],[5330530,"Abdelkhalek, Wael","M",23,1,""],[5321808,"Abdelrahman, Handam","M",17,1,""],[5332648,"Abdelrahman, Mohammed","M",15,1,""],[5327512,"Abdelsalam, Shaheen","M",29,1,""],[5329728,"Abdelsamad, Loren","F",8,1,""],[5324815,"Abdo, Bilal","M",32,1,""],[5321190,"Abdo, Eddy","M",28,1,""],[5306655,"Abdo, Elie","M",42,1,""],[5306663,"Abdo, Oussama","M",76,1,""],[5326265,"Abdoush, Majd","M",27,1,""],[5333717,"Abdul Kader, Ahmad","M",17,1,""],[5315565,"Abdul Khalek, Assad Ayman","M",61,1,""],[146242481,"Abdul Khalek, Hadi","M",38,1,""],[5328306,"Abdul Khalek, Razan","F",12,1,""],[5306183,"Abdul Rahim, Abdul Rahman","M",56,1,""],[5318254,"Abdul Rahim, Ghazal","M",63,1,""],[5311829,"Abdul Samad, Amer","M",30,1,""],[5333830,"Abdulaziz  Yamen","M",11,1,""],[5317479,"Abdulaziz, Issa","M",28,1,""],[5310725,"Abdulkader, Karim","M",15,1,""],[5308763,"Abdulkader, Tala","F",18,1,""],[5308755,"Abdulkhader, Karim","M",25,1,""],[5317487,"Abdullah, Alaadin","M",26,1,""],[5309450,"Abdullah, Hamed","M",27,1,""],[5302889,"Abdullatif, Hassan","M",27,0,""],[5326273,"Abdulllah, Abdulsalam","M",18,1,""],[5308895,"Abdulrahman, Hoblos","M",19,1,""],[5315573,"Abedlmalak, Grace","F",23,1,""],[5315263,"Abedlmalak, Zuheir Khalil","M",55,1,""],[5327083,"Abi Aad, Marc","M",11,1,""],[5327091,"Abi Aad, Michel","M",14,1,""],[5315760,"Abi Azar, Jean","M",20,0,""],[5318262,"Abi Chaaya, Rolanthony","M",11,1,""],[5331226,"Abi Chacra, Paul","M",19,1,""],[5311608,"Abi Fadel, Najib","M",25,1,""],[5321085,"Abi Fadel, Rani","M",19,1,""],[5318050,"Abi Farraj, Bahaa Ali","M",17,1,""],[5324297,"Abi Ghanam, Karam","M",16,1,""],[5324300,"Abi Ghanam, Mohamad","M",17,1,""],[5328837,"Abi Ghanem, Joseph","M",40,1,""],[5324319,"Abi Ghanem, Majd","M",17,1,""],[5326281,"Abi Ghanem, Philip","M",52,1,""],[5325722,"Abi Ghanem, Ram","M",15,1,""],[5326290,"Abi Ghanem, Theodore","M",14,1,""],[5321530,"Abi Haidar,Jean","M",57,1,""],[5331420,"Abi Jaoude, Elie","M",14,1,""],[5317398,"Abi Jaoudeh, Clara","M",19,1,""],[5309956,"Abi Karam, Joseph","M",29,0,""],[5330998,"Abi Moussa, Charbel","M",19,1,""],[5313023,"Abi Nader, Miyo","F",15,1,""],[5307058,"Abi Rached, Joseph","M",43,0,""],[5319897,"Abi Saad, Joe","M",25,1,""],[5329760,"Abo L Mona, Fadi","M",14,1,""],[5326303,"Abo Raqaba, Mahmoud","M",12,1,""],[5316847,"Abo Rida,Jawad","M",11,1,""],[5321921,"Abou Abbas, Ahmad","M",37,1,""],[5321930,"Abou Adelah, Ali","M",26,1,""],[5303923,"Abou Adelah, Ghassan","M",56,1,""],[5304741,"Abou Al Jalad, Georges","M",22,1,""],[5333334,"Abou Ali Bilal","M",43,1,""],[5325730,"Abou Antoun, Francois","M",37,1,""],[5332656,"Abou Antoun, Richard","M",37,1,""],[5319587,"Abou Chakra,Michael","M",19,1,""],[5309859,"Abou Daher, Hiba","F",22,1,""],[5327733,"Abou Dargham, Johnny","M",29,1,""],[5312434,"Abou Daya , Mohamad Hassan","M",20,1,""],[5309867,"Abou Deeb, Mark","M",16,0,""],[5305659,"Abou Dib, Hanna","M",51,1,""],[5303010,"Abou El Hussen, Amir","M",37,0,""],[5327113,"Abou Elias, John","M",21,1,""],[5311217,"Abou Elias, Marc","M",18,1,""],[5311225,"Abou Elias, Peter","M",15,1,""],[5314810,"Abou Ezzedine, Faissal Jad","M",40,1,""],[5332540,"Abou Fares Daniel Elie","M",10,1,""],[5329779,"Abou Ghaida, Marc","M",12,1,""],[5313864,"Abou Ghatas Mouhana, Samir Assaad","M",31,1,""],[5311837,"Abou Hamdan, Ali","M",56,1,""],[5314828,"Abou Hamdan, Mazen","M",38,1,""],[5325404,"Abou Hamdan, Noor","M",29,1,""],[5309964,"Abou Hamdan, Wissam","M",17,1,""],[5326052,"Abou Hamze, Raja","M",13,1,""],[5317290,"Abou Hawili, Jad","M",26,1,""],[5329590,"Abou Hjeily, Karim","M",14,1,""],[5331650,"Abou Jaoude, Charbel","M",13,1,""],[5301920,"Abou Jaoude, Elias","M",68,1,""],[5310059,"Abou Jaoude, Elie","M",44,1,""],[5327520,"Abou Jaoude, Karim","M",15,1,""],[5332664,"Abou Jokh, Hamzah","M",26,1,""],[5311802,"Abou Khalil, Imad","M",60,1,""],[5322456,"Abou Khalil, Mohamad Ali Amer","M",12,1,""],[5321204,"Abou Khzam, Ameer","M",27,1,""],[5331773,"Abou Mjahed Karam Ziad","M",11,1,""],[5308470,"Abou Mourad,Kamil","M",61,0,""],[5321816,"Abou Mrad, Farid","M",12,1,""],[5334390,"Abou Nakoul Joe","M",27,1,""],[5306191,"Abou Nemri, Alaa","F",25,1,""],[5306205,"Abou Nemri, Aysha Naoumi","F",21,1,""],[5309913,"Abou Nemri, Nohad","F",20,1,""],[5307449,"Abou Nemri, Nour","F",35,1,""],[5309921,"Abou Nemri, Yasmine","F",21,1,""],[5304938,"Abou Nemri, Zeinab","F",24,1,""],[5322170,"Abou Nemri,Muhieddine","M",54,1,""],[5320690,"Abou Rida , Hussein","M",9,1,""],[5325412,"Abou Saad, Adam","M",18,1,""],[5314836,"Abou Saed, Rani","M",24,1,""],[5309468,"Abou Saleh, Khalil","M",47,1,""],[5311845,"Abou Shakra, Alaa","M",29,1,""],[5315271,"Abou Taam, Fatima","F",17,1,""],[5324327,"Abou Taam, Jaafar","M",23,1,""],[5318653,"Abou Taam, Khaled","M",56,1,""],[5317495,"Abou Taam, Mahmoud","M",32,1,""],[5312809,"Abou Zaher Mohamad, Rayan","M",17,1,""],[5312817,"Abou Zaher Mohamad, Taym","M",13,1,""],[5319358,"Abou Zahr, Adam","M",14,1,""],[5319315,"Abou Zahr, Elsa Carole","F",13,1,""],[5301378,"Abou Zahr, Ezzeddine","M",40,1,""],[5313651,"Abou Zeid , Eddy","M",26,1,""],[5319900,"Abou Zeid, Georges","M",50,1,""],[5319919,"Abou Zeid, Joseph","M",19,1,""],[5327741,"Aboukhdoud, Ali","M",20,1,""],[5317363,"Abrahamian, Sevag Apig","M",32,1,""],[5323460,"Absi Halabi,Taym Basil","M",16,1,""],[5323479,"Absi Halabi,Zayan Faris","M",15,1,""],[5323657,"Abtar, Khodor","M",20,1,""],[5315980,"Abu Alfa, Imad Al Deen","M",25,1,""],[5328659,"Abu Almona, Fadi","M",14,1,""],[5309646,"Abu Daher, Omran","M",19,1,""],[5309654,"Abu Daher, Razan","F",17,1,""],[5327890,"Abu Hjeili, Karim","M",14,1,""],[5310164,"Abu Izzeddin, Faisal Jad","M",40,1,""],[5317509,"Abu Mujahid, Naji","M",53,1,""],[5333121,"Abu Nasr, Fouad","M",15,1,""],[5321824,"Achkar, Albert","M",16,1,""],[5321212,"Achkar, Alfred","M",19,1,""],[5333970,"Achkar, Chris","M",11,1,""],[5313414,"Acra, Michel","M",28,1,""],[5319161,"Adam El Hajj Chehade","M",10,1,""],[5327539,"Adeimi, Jessica","F",35,1,""],[689165,"Adeimi, Michel","M",32,1,"CM"],[5322464,"Adib, Mohamad Adib","M",14,1,""],[5332672,"Afi, Adonis","M",13,1,""],[5333423,"Afif, Karim","M",11,1,""],[5302455,"Afyouni, Jamal","M",61,1,""],[5322197,"Agha, Ali","M",27,1,""],[5319668,"Agha, Lina","F",17,1,""],[5304539,"Agopian, Elias","M",36,1,""],[5319218,"Ahmad Hamdar","M",10,1,""],[5322472,"Ahmad Kassem, Abbas","M",13,1,""],[5322480,"Ahmad Kassem, Hussein","M",16,1,""],[5314844,"Ahmad, Ahmad Walid","M",44,1,""],[5314852,"Ahmad, Fawaz Abdelwahab","M",29,1,""],[5310172,"Ahmad, Ghady Sayed","M",16,1,""],[5303745,"Ahmad, Jawad","M",55,1,""],[5318700,"Ahmad, Sara","M",21,1,""],[5318858,"Ahmad, Sarah","F",21,1,""],[5320437,"Ahmad, Yehya","M",26,1,""],[5310180,"Ahmad, Zaher Sayed","M",21,1,""],[5329787,"Ahmadieh, Alissar","F",18,1,""],[5326311,"Ahmadieh, Alissar Wassim","F",18,1,""],[5324335,"Ahmadieyeh, Elissar","F",18,1,""],[5321573,"Ahmed, Abbas","M",43,1,""],[5331030,"Ahmed, Mohamad","M",11,1,""],[9201068,"Ajaj, Samih","M",55,1,""],[5308380,"Ajam,Bilal","M",37,1,""],[5327903,"Ajami, Daniel","M",26,1,""],[5311136,"Ajamy, Wassim","M",56,1,""],[5314755,"Ajjawi, Mohannad","M",36,1,""],[5317460,"Akanan, Bassam","M",28,1,""],[5331854,"Akaoui, Bahaa","M",16,1,""],[5312914,"Akashian Robert, Sarkis","M",16,1,""],[5312922,"Akashian Robert,Trasdamart","M",16,1,""],[5317401,"Akelian, Sarkis","M",37,1,""],[5301874,"Akhrass, Roland","M",47,0,""],[5319927,"Akiki, Charbel","M",14,1,""],[5300797,"Akiki, Michel","M",56,0,""],[5305411,"Akl, Jad","M",29,1,""],[5324521,"Akl, Jad Eli","M",15,1,""],[5318068,"Akl, Nabil Fouad","M",71,1,""],[5314860,"Akl, Nabilshadi","M",22,1,""],[5310199,"Akl, Shadi","M",22,1,""],[5317517,"Akra, Sama","F",15,1,""],[5329795,"Aktaa, William","M",14,1,""],[5332818,"Al Aassidi, Majd","M",21,1,""],[5322200,"Al Aawar, Adam","M",18,1,""],[5322219,"Al Aawar, Eddie","M",18,1,""],[5313716,"Al Abeed , Seraj Aldin","M",16,1,""],[5304920,"Al Abid, Bassem","M",60,1,""],[5306671,"Al Abid, Sirajeldine","M",16,1,""],[5311322,"Al Agha, Hachem","M",24,1,""],[5308585,"Al Ahdab, Issam","M",22,1,""],[5308046,"Al Aisi, Abdullah","M",26,1,""],[5332290,"Al Alam, Peter","M",22,1,""],[5314070,"Al Alam, Tanous","M",57,1,""],[5329809,"Al Ali, Marcelino","M",9,1,""],[5308330,"Al Amer, Nizam","M",53,1,""],[5309476,"Al Amin, Ahmad","M",46,1,""],[5330084,"Al Amine, Mohsen","M",34,1,""],[5330092,"Al Amine, Nouh","M",15,1,""],[5309662,"Al Anis, Sirine","F",20,1,""],[5311454,"Al Anis, Tala","F",16,1,""],[5303753,"Al Anjom, Jean","M",60,1,""],[5315581,"Al Aridi, Motassem Nibal","M",16,1,""],[5317525,"Al Ashi, Ahmad","M",16,1,""],[5318076,"Al Ashi, Ans Mohamad","M",15,1,""],[5320445,"Al Asmar, Jessy","M",26,1,""],[5319935,"Al Asmar, Remy","F",19,1,"WCM"],[5334250,"Al Assaad Kareem","M",14,1,""],[5333962,"Al Assaad Khaled","M",14,1,""],[5327121,"Al Assaad, Michael","M",25,1,""],[5312787,"Al Assad , Mila","F",15,1,""],[5307295,"Al Assi, Ahmad","M",39,0,""],[5333431,"Al Attar, Mahdi","M",19,1,""],[5319625,"Al Awar, Najib","M",30,0,""],[5311462,"Al Azzi, Ekaterina","M",18,1,""],[5310733,"Al Bach, Wael","M",32,1,""],[5305438,"Al Banna, Jad","M",30,1,""],[5329817,"Al Banna, Roni","M",12,1,""],[5328195,"Al Baraki, Mohammad","M",12,1,""],[5321948,"Al Bazal, Mohamad","M",48,1,""],[5321956,"Al Bazzal, Ibrahim","M",37,1,""],[5321964,"Al Bazzal, Zolfikar","M",48,1,""],[5321050,"Al Bazzal,Ahmad","M",38,1,""],[5321972,"Al Beiruti, Mahmoud","M",27,1,""],[5312876,"Al Beyrouty Bilal, Mahmoud","M",27,1,""],[5329604,"Al Bitar, Mohammad Hachem Mahmoud","M",23,1,""],[5322499,"Al Daayu, Ali Rida","M",18,1,""],[5323282,"Al Dahab, Khaled","M",21,1,""],[5303710,"Al Dahabi, Mohamad","M",41,0,""],[5322502,"Al Dalhi, Ali Hassan","M",18,1,""],[5315280,"Al Dana, Abd Ali Abdulah","M",67,1,""],[5314089,"Al Dayee, Haitham","M",24,1,""],[5321794,"Al Deeb,Wael","M",42,1,""],[5305446,"Al Endari, Rabih","M",29,1,""],[5331862,"Al Falou, Yehia","M",12,1,""],[5317185,"Al Fawal, Karim","M",25,1,""],[5308607,"Al Ferri, Abdulkhader","M",20,1,""],[5308631,"Al Ferri, Walid","M",42,1,""],[5307430,"Al Ghazzawi, Omar","M",31,0,""],[5314879,"Al Ghossein, Milo","M",66,1,""],[5309298,"Al Haidari, Ali Al Rida","M",32,1,""],[5308909,"Al Haj,Taha","M",19,1,""],[5320410,"Al Hajj , Maya","F",9,1,""],[5323886,"Al Hajj, Aser","M",12,1,""],[5330548,"Al Hajj, Hassan","M",39,1,""],[5331439,"Al Hajj, Maria","F",11,1,""],[5307198,"Al Hajj, Rawad","M",56,1,""],[5326893,"Al Hakim, Khaled","M",22,1,""],[5326907,"Al Hakim, Mohammad Shafik","M",30,1,""],[5314887,"Al Halabi, Joud Rajeh","M",56,1,""],[5308526,"Al Halabi, Mohamad","M",32,1,""],[5329612,"Al Harakeh, Wassim","M",23,1,""],[5332370,"Al Hares Richard Ryan","M",11,1,""],[5308844,"Al Hassan, Nawal","F",24,1,""],[5321220,"Al Hassanieh, Daniel","M",26,1,""],[5333130,"Al Hassanieh, Daniel","M",10,1,""],[5321239,"Al Hassanieh, Nabil","M",27,1,""],[5312760,"Al Hayek, Ahmad","M",46,1,""],[5322774,"Al Hayek, Ahmad","M",21,1,""],[5331870,"Al Hayek, Ahmad Walid","M",11,1,""],[5306213,"Al Hayek, Essam","M",40,1,""],[5305667,"Al Hmadeih, Akram","M",66,1,""],[5317533,"Al Homsi, Ghassan","M",18,1,""],[5329825,"Al Homsi, Samia","F",39,1,""],[5331889,"Al Houcheimi, Hamza Abdulah","M",13,1,""],[5331897,"Al Houcheimi, Hanin","F",11,1,""],[5322510,"Al Houcheimi, Hawraa","F",19,1,""],[5308089,"Al Houmsi, Ammar","M",64,1,""],[5318084,"Al Houmsi, Hassan Fawzi","M",18,1,""],[5308097,"Al Houmsi, Mohamad","M",38,1,""],[5328845,"Al Issa, Chadi Adel","M",21,1,""],[5320763,"Al Jajeh , Mohamad-Kinan","M",45,1,""],[5307970,"Al Janoun, Mohamad","M",25,1,""],[5322227,"Al Jnainati, Mohammad","M",23,1,""],[5324343,"Al Jurdi, Ribal","M",17,1,""],[5324351,"Al Jurdy, Nabil","M",75,1,""],[5315751,"Al Jurdy,Firas","M",44,0,""],[5324823,"Al Kaafarani, Wiliam","M",12,1,""],[5315778,"Al Kadi, Samer","M",38,1,""],[5311853,"Al Kalas, Amjad","M",56,1,""],[5302803,"Al Kaoury, Mahdi","M",33,0,"CM"],[5308402,"Al Kasir, Moustafa","M",25,1,""],[5311330,"Al Kass, Abdallah","M",24,1,""],[5318866,"Al Kassas, Mohammad","M",23,1,""],[5324254,"Al Kayssi, Bilal","M",15,1,""],[5306221,"Al Kazwini, Bassim","M",20,1,""],[5308577,"Al Khair, Amir","M",21,1,""],[5328314,"Al Khaled, Rawad","M",17,1,""],[5324530,"Al Khalil, Nazem Hicham","M",15,1,""],[5333385,"Al Khalili Rached","M",29,1,""],[5326320,"Al Khansa, Malika","F",11,1,""],[5314895,"Al Khatib, Imad Karim","M",15,1,""],[5319404,"Al Khatib, Jinane","F",57,1,""],[5314909,"Al Khatib, Mounir Shadi","M",27,1,""],[5318092,"Al Khatib, Muheiddine","M",11,1,""],[5332095,"Al Khatib, Youssef Ali","M",16,1,""],[5322529,"Al Khechen, Amir Hicham","M",13,1,""],[5322235,"Al Khoury, Yorgo","M",20,1,""],[5314097,"Al Kordi, Ali","M",22,1,""],[5314100,"Al Kordi, Anas","M",25,1,""],[5333245,"Al Korhani Abdel Salam","M",31,1,""],[5323452,"Al Mahamoud,Ibrahim","M",17,1,""],[5304547,"Al Mais, Walid","M",56,1,""],[5314119,"Al Masri, Hasanyn","M",34,1,""],[5329205,"Al Masri, Lea","F",12,1,""],[5317541,"Al Masri, Omar","M",25,1,""],[5307244,"Al Massih, Alexander","M",18,1,""],[5318270,"Al Mawla, Hassan","M",22,1,""],[5319455,"Al Mawla, Sobhi","M",22,1,""],[5329213,"Al Mawla, Souad","F",13,1,""],[5333881,"Al Mawla, Yehya","M",19,1,""],[5305454,"Al Moghrabi, Mahmoud","M",51,1,""],[5310202,"Al Mohtar, Joud","M",20,1,""],[5310210,"Al Mohtar, Yamen","M",24,1,""],[5315999,"Al Mokdad, Bassem","M",22,1,""],[5325749,"Al Mokdad, Wassim","M",30,1,""],[5306230,"Al Moualem, Jamil","M",56,1,""],[5321247,"Al Mousawi, Ali","M",61,1,""],[5321980,"Al Mousawi, Mohamad","M",22,1,""],[5327130,"Al Moussaoui, Hussein","M",22,1,""],[5327148,"Al Moussawi, Mohammad Ali","M",23,1,""],[5315298,"Al Nakib, Adham Naya","M",12,1,""],[5326141,"Al Osaily, Wissam","M",12,1,""],[5314917,"Al Rayes, Majed Tamer","M",21,1,""],[5314925,"Al Rayess, Melhem Nassib","M",20,1,""],[5314127,"Al Rifaii, Hasan","M",22,1,""],[5323630,"Al Rihani, Hady","M",34,1,""],[5328233,"Al Sabbagh, Kamal","M",18,1,""],[5311616,"Al Safah, Bilal","M",24,1,""],[5322537,"Al Saleh, Obaid","M",45,1,""],[5328209,"Al Saleh, Rimas","F",18,1,""],[5328225,"Al Saleh, Sana","F",18,1,""],[5328217,"Al Saleh, Sima","F",12,1,""],[5301726,"Al Salman, Mohamad","M",34,0,""],[5308534,"Al Samad, Jawad","M",24,1,""],[5308062,"Al Samad, Mohamad","M",42,1,""],[5329221,"Al Sarji, Abbas","M",14,1,""],[5329230,"Al Sarji, Ahmad","M",12,1,""],[5329248,"Al Sarji, Ali","M",13,1,""],[5322162,"Al Sarout,Omar","M",36,1,""],[5328284,"Al Sayed, Ahmad","M",17,1,""],[5328276,"Al Sayed, Anas","M",16,1,""],[5328292,"Al Sayed, Ziad","M",13,1,""],[5333806,"Al Sayegh Balsam","F",37,1,""],[5327547,"Al Sayyed, Bilal","M",16,1,""],[5333890,"Al Shami, Hasan","M",17,1,""],[5323290,"Al Sheikh, Ali","M",20,1,""],[5329191,"Al Sheikh, Younes","M",28,1,""],[5314135,"Al Shimali, Adam","M",46,1,""],[5304318,"Al Shmaitilli, Imad","M",39,1,""],[5308445,"Al Taher, Sirajeddine","M",32,1,""],[5318289,"Al Tal, Ammar","M",16,1,""],[5310229,"Al Wafi, Abdelrahman","M",25,1,""],[5330556,"Al Wazzan, Taha","M",25,1,""],[5329620,"Al Zarif, Hassan","M",36,1,""],[5317550,"Al Zarif, Karim","M",20,1,""],[5329256,"Al Zein, Fatima","F",12,1,""],[5333440,"Al Zein, Hussein","M",14,1,""],[5329264,"Al Zein, Joud","M",16,1,""],[5307643,"Al kurdi, Abed Al Rahman","M",33,1,""],[5333415,"Al-Moussawi, Abbas","M",17,1,""],[5304253,"Alaa Eddine, Ali Hassan","M",58,1,""],[5304504,"Alaa Eddine, Hani","M",56,1,""],[5322545,"Alaa Eddine, Samer Ali","M",25,1,""],[5306248,"Alaa El Din, Abdallah","M",24,1,""],[5322553,"Alaa El Din, Hilal Ali","M",18,1,""],[5311861,"Alaadine, Abdalah","M",56,1,""],[5331153,"Alaadine, Abdullah","M",24,1,""],[5330505,"Alaeddine,Ali","M",58,1,""],[5321042,"Alaeddine,Mohamad","M",17,1,""],[5328519,"Alahmad, Ahmad Adnan","M",23,1,""],[5322243,"Alali, Siraj","M",19,1,""],[5333792,"Alam eddine Said","M",38,1,""],[5319943,"Alam, Daniel","M",20,1,""],[5330106,"Alame, Abdalhadi","M",29,1,""],[5321581,"Alameddine, Adam","M",19,1,""],[5310903,"Alameddine, Ferial","M",27,1,""],[5316006,"Alameddine, Ghazi Ezzat","M",17,1,""],[5321590,"Alameddine, Mohamad","M",19,1,""],[5305420,"Alameddine, Nohad","M",51,1,""],[5317568,"Alameddine, Saeed","M",28,1,""],[5330114,"Alameh, Jad","M",10,1,""],[5301890,"Alan, Helo","M",50,1,""],[5334306,"Alao, Ali Alhadi","M",11,1,""],[5334314,"Alao, Hawra","F",13,1,""],[5319137,"Alassaad, Ali Hassan","M",12,1,""],[5327911,"Alatri, Rola","F",42,1,""],[5325285,"Alawieh, Lea","F",8,1,""],[5314143,"Albaraa, Abdulkhaleq","M",23,1,""],[5325757,"Alchoueiry, Sami","M",35,1,""],[5315590,"Aldakour Al Aridi, Amine Sarjoun","M",27,1,""],[5318106,"Aldeeb, Wael Ameen","M",42,1,""],[5312973,"Alferri Abdul Kader , Ramez","M",49,1,""],[5331668,"Alhamadieh, Alissar Wassim","M",18,1,""],[5329272,"Alharoun, Abdallah","M",19,1,""],[5311870,"Alhoumsi, Khaled","M",23,1,""],[5322561,"Ali Abbas, Charaf","M",13,1,""],[5331625,"Ali Abo Raya","M",13,1,""],[5331617,"Ali Ammouri","M",16,1,""],[5322570,"Ali Deebeh, Hassan","M",12,1,""],[5322588,"Ali Deebeh, Yasser","M",11,1,""],[5331595,"Ali Ezzedine","M",9,1,""],[5307570,"Ali Khan, Amani","F",33,1,""],[5331552,"Ali Rida Wehbi","M",11,1,""],[5331560,"Ali Rida Zbib","M",13,1,""],[5324360,"Ali Rida, Isameil","M",22,1,""],[5323665,"Ali, Haidar","M",16,1,""],[5323673,"Ali, Jinan","F",23,1,""],[5326338,"Ali, Joude","F",11,1,""],[5325293,"Ali, Malak","F",14,1,""],[5326915,"Ali, Mohamad","M",29,1,""],[5323487,"Ali,Nassim","M",16,1,""],[5317576,"Alkhatib, Muheidine","M",11,1,""],[5315301,"Alkotob, Al Mazen Ehab","M",22,1,""],[5315603,"Alkotob, Mohamad Khair","M",16,1,""],[5308259,"Alkotob, Wassim","M",33,1,""],[5313384,"Allam , Ahmad Alaa","M",25,1,""],[5311004,"Allam, Alex","M",56,1,""],[5321255,"Allouch, Alaa","M",37,1,""],[5322596,"Alloue, Ali","M",15,1,""],[5311888,"Alloue, Hussein","M",31,1,""],[5311896,"Alloue, Mohamad","M",58,1,""],[5322600,"Alloue, Zeinab","F",19,1,""],[5324831,"Allow, Hussein","M",33,1,""],[5328853,"Almawla, Amin Sara","F",10,1,""],[5328861,"Almawla, Amin Souad","F",13,1,""],[5322618,"Almmarabouni, Diya","M",39,1,""],[5324548,"Alnemer, Hussein Ali","M",16,1,""],[5314151,"Aloula, Sabreen","F",34,1,""],[5318297,"Alouli, Rayan","M",15,1,""],[5314160,"Alsayah, Jawad","M",23,1,""],[5314062,"Alsayed,Ziad Ahmad","M",13,1,""],[5324556,"Alshaar, Adel","M",73,1,""],[5312981,"Alshabeb George , Gaelle","F",15,1,""],[5318300,"Alsourji, Hasan","M",18,1,""],[5323304,"Alsousy, Ibrahim","M",27,1,""],[5330343,"Alwan, Obeida","M",18,1,""],[5326346,"Alzein, Hussein","M",12,1,""],[5306680,"Amaout, Abdelrahman","M",76,1,""],[5313899,"Amer, Maarouf Walid","M",47,1,""],[5307490,"Amer, Mohamad Youssef","M",21,1,""],[5307481,"Amer, Sami","M",52,1,""],[5314178,"Amer, Walid","M",47,1,""],[5307309,"Amin, Ali","M",28,1,""],[5311900,"Amin, Jad","M",43,1,""],[5305462,"Amin, Karim","M",51,1,""],[5326354,"Amin, Micheal","M",9,1,""],[5331676,"Amin, Shadi","M",26,1,""],[5322626,"Amin, Waek Dib","M",42,1,""],[5331684,"Amine, Ray","M",9,1,""],[5326362,"Ammar, Ali","M",9,1,""],[5300282,"Ammoun, Hani","M",66,0,""],[5307767,"Amr, Ahmad","M",38,1,""],[5314186,"Andonian, Sevada","M",46,1,""],[5322634,"Andounian, Sako","M",22,1,""],[5320550,"Andraos , Georges","M",17,0,""],[5316928,"Anis, Laetitia","F",21,1,""],[5321999,"Ankouni, Amir Hussein","M",16,1,""],[5322642,"Ankouni, Amir Hussein","M",16,1,""],[5320852,"Antar, Hussein","M",28,1,""],[5300843,"Antonios, Johnny","M",45,1,"CM"],[5314194,"Anwar, Oumais","M",41,1,""],[5333709,"Aouad Karl Charles","M",8,1,""],[5317193,"Aoun, Alfred","M",26,1,""],[5319323,"Aoun, Jad","M",13,1,""],[5314208,"Aoun, John","M",22,1,""],[5314216,"Aoun, Karim","M",28,1,""],[5324564,"Aoun, Maroun","M",17,1,""],[5303931,"Aoun, Sohad","M",52,1,""],[5318874,"Aoun, Tima","F",19,1,""],[5324149,"Aoun,Tima","F",19,1,""],[5308550,"Arab, Jad","M",26,1,""],[5308593,"Arab, Wadiee","M",19,1,""],[5304555,"Arabia, Jamal","M",56,1,""],[5308127,"Araji, Ghofran","M",22,1,""],[5308968,"Arakji, Khaled","M",56,1,""],[5317037,"Aramali, Christ","M",14,1,""],[5307538,"Arbid, Adam","M",17,1,""],[5315549,"Arida, Youssef","M",58,1,""],[5309689,"Arkadan, Abed Rahman","M",18,1,""],[5309670,"Arkadan, Adam","M",15,0,""],[5304946,"Arkadan, Adib","M",20,1,"CM"],[5308747,"Arkadan, Asmaa","F",18,1,""],[5309697,"Arkadan, Ibrahim","M",23,1,""],[5313350,"Arkadan, Khaled Mira","F",15,1,""],[5309700,"Arkadan, Reem","F",20,1,""],[5312655,"Arkadan,Rayan","F",17,1,""],[5307074,"Arnaout, Abdelrahman","M",21,0,""],[5308410,"Arnaout, Misho","M",33,1,""],[5307082,"Arnaout, Ziad","M",21,0,""],[5302897,"Arnelian, Nanor","F",22,0,""],[5319951,"Arnelian, Nayiri","F",16,1,""],[5317371,"Artinian, Christapor","M",29,1,""],[5306256,"Asaad, Ali","M",22,1,""],[5306264,"Asaad, Hady","M",20,1,""],[5309719,"Asad, Nabil","M",16,1,""],[5327555,"Asaker, Antoine","M",23,1,""],[5306701,"Ashaji, Lina","M",76,1,""],[5316014,"Ashkar, Riyad Alaa","M",22,1,""],[5315310,"Ashkar, Riyad Oussama","M",36,1,""],[5330564,"Ashour, Nariman","F",16,1,""],[5322251,"Asmar, Nayis","M",36,1,""],[5315611,"Asraoui, Ralph","M",16,1,""],[5330980,"Assaad Farah","F",32,1,""],[5317584,"Assaad, Abdul Khalek","M",61,1,""],[5310504,"Assaad, Joe","M",28,1,"CM"],[5324840,"Assad, Ali","M",15,1,""],[5327156,"Assad, Anthony","M",29,1,""],[5309875,"Assad, Nabil","M",16,1,""],[5329183,"Assaf, Al-Rodwan","M",18,1,""],[5329566,"Assaf, Alrodwan","M",18,1,""],[5313813,"Assaf, Maroun Farid Jad","M",28,1,""],[5324858,"Assaf, Noah","M",26,1,""],[5333407,"Assaf, Raja Thomas","M",12,1,""],[5322260,"Assaker, Alain","M",42,1,""],[5329280,"Assaker, Antoine","M",25,1,""],[5317380,"Assarian, George","M",26,1,""],[5306710,"Assoum, Nour","F",21,1,""],[5328322,"Assoum, Rania","F",15,1,""],[5318319,"Atallah, Elie","M",13,1,""],[5305470,"Atallah, Marwan","M",51,1,""],[5317592,"Atayan, Antranik","M",56,1,""],[5329736,"Atayan, Aren","M",9,1,""],[5318327,"Atayan, Carlo","M",12,1,""],[5317606,"Atayan, Michel","M",14,1,""],[5324866,"Atieh, Jad","M",14,1,""],[5308950,"Atifa, Dani","M",18,1,""],[5312507,"Attalah,Antoine Wadih","M",66,1,""],[5329833,"Attar, Ali","M",28,1,""],[5329841,"Attar, Hassan","M",25,1,""],[5329850,"Attar, Issam","M",30,1,""],[5328683,"Attar, Mohammad","M",20,1,""],[5329868,"Attar, Youssef","M",22,1,""],[5329876,"Attar, Zein","M",24,1,""],[5313422,"Attieh, Christian Antony","M",25,1,""],[5313562,"Attieh, Kate","F",14,1,""],[5313570,"Attieh, Skye","F",11,1,"WCM"],[5301734,"Attieh, Wael","M",45,1,""],[5313848,"Atwi , Ali Mohamad","M",68,1,""],[5300916,"Atwi, Ali","M",38,0,""],[5318335,"Atwi, Hussein Hassan","M",51,1,""],[5332320,"Atwi, Mostafa","M",29,1,""],[5313830,"Atwy , Mohammad Nour","M",31,1,""],[5316430,"Awad, Ghali","M",19,0,""],[5307163,"Awad, Joe","M",17,1,""],[5307171,"Awad, Mark","M",15,1,""],[5333660,"Awada Jawad Mohammad","M",5,1,""],[5333679,"Awada Talia Mohammad","F",8,1,""],[5318343,"Awada, Jawad","M",20,1,""],[5309026,"Awaida, Adnan","M",16,1,""],[5329299,"Awarki, Mohammad Ali","M",17,1,""],[5308275,"Awik, Abdulsalam Ali","M",60,1,""],[5308305,"Awik, Ali Khaled","M",43,1,""],[5308356,"Awik, Mohamad Ahmad","M",34,1,""],[5308321,"Awik, Mohamad Khaled","M",34,1,""],[5308100,"Awik, Mohamad Omar","M",25,1,""],[5321263,"Awli, Ali","M",22,1,""],[5305136,"Ayach, Fadi","M",49,1,""],[5324572,"Ayache, Ali","M",16,1,""],[5327920,"Ayash, Mouemen","M",17,1,""],[5311918,"Ayman, Kaadan","M",56,1,""],[5311926,"Ayoub, Amani","M",56,1,""],[5305233,"Ayoub, Auriane","F",15,0,""],[5307155,"Ayoub, Aziz","M",54,1,""],[5313163,"Ayoub, Bilal","M",26,1,""],[5307830,"Ayoub, Haitham","M",50,1,""],[5327164,"Ayoub, Mourtada","M",28,1,""],[5330572,"Ayoub, Rayan","F",21,1,""],[5330750,"Ayoub, Rayyan Ismat","F",21,1,""],[5317304,"Ayoub, Sergio","M",22,1,""],[5307848,"Ayoub, youssef","M",49,1,""],[5311934,"Ayoubi, Khaled","M",35,1,""],[5324874,"Ayoubi, Mounzer","M",21,1,""],[5306728,"Ayoubi, Nour","M",22,1,""],[5325765,"Ayyash, Hadi","M",22,1,""],[5329302,"Ayyoub, Ahmad","M",46,1,""],[5332915,"Ayyoub, Ramy","M",19,1,""],[5307414,"Azar, Jacob","M",29,0,""],[5333270,"Azar, Marwan","M",14,1,""],[5323231,"Azar,Azar","M",19,1,""],[5305489,"Azzam, Amer","M",51,1,""],[5314933,"Azzam, Bassam Amer","M",31,1,""],[5319331,"Azzam, Jolie","F",12,1,""],[5315786,"Azzam, Maroun","M",22,1,""],[5319293,"Azzam, Omar","M",10,1,""],[5328870,"Azzi, Karl","M",26,1,""],[5318939,"Baalbaki, Alissa","F",21,1,""],[5313945,"Baba ,Omar Sandra","F",21,1,""],[5321603,"Baba, Mohamad","M",18,1,""],[5315328,"Badaoui,Sandra","F",35,1,""],[5325773,"Baddour, Daniel","M",22,1,""],[5322391,"Bader El Din , Leen","F",13,1,""],[5324882,"Bader, Omar Khaled","M",27,1,""],[5309425,"Badieh, Khaled","M",57,1,""],[5305217,"Badieh, Mahmoud","M",18,0,""],[5310989,"Badieh, Rawan","F",26,1,""],[5314224,"Badr, Daniel","M",33,1,""],[5323312,"Badr, Mario","M",56,1,""],[5311942,"Badra, Ahmad","M",50,1,""],[5313538,"Badra, Houssein","M",22,1,""],[5319960,"Badran, Ibrahim","M",20,1,""],[5313546,"Badran, Said","M",27,1,""],[5312604,"Badran,Ali","M",67,1,""],[5333903,"Baghdadi, Hasan","M",10,1,""],[5320860,"Baghdadi, Hassan","M",25,1,""],[5323681,"Baghdadi, Hussein","M",46,1,""],[5313430,"Baghdadi, Mohamad","M",22,1,""],[5327172,"Baghdadi, Rami","M",22,1,""],[5332753,"Bahlak Mohammad Samir","M",38,1,""],[5314232,"Bahmad, Raghead","M",23,1,""],[5308488,"Baidoun,Abdallah","M",29,1,""],[5314780,"Bakdach, Samer","M",42,1,""],[5316448,"Baker, Ibrahim","M",41,1,""],[5331900,"Bakhash, Abdalah","M",44,1,""],[5331919,"Bakhash, Hassan","M",13,1,""],[5308283,"Bakour, Ahmad","M",57,1,""],[5310997,"Balaa, Nicolas","M",33,1,""],[5321093,"Baladi, Enzo","M",18,0,""],[5327938,"Ballan, Lucas","M",9,1,""],[5322278,"Balt, fffffffffffffffffff","M",38,1,""],[5329310,"Baltagi, Hala","F",12,1,""],[5308429,"Bandaly, Joseph","M",33,1,""],[5307619,"Barakat, Christopher","M",32,0,""],[5323894,"Barakat, Mustafa","M",17,1,""],[5300096,"Barakat, Rafic","M",64,1,""],[5310555,"Barakat, Yassine","M",34,1,""],[5314240,"Barbar, Freiz","M",26,1,""],[5309484,"Barkoumi, Abdulrahman","M",28,1,""],[5329655,"Barnaba, Kay","F",14,1,""],[5315182,"Baroud, Teymour","M",14,0,""],[5333032,"Baroudy, Omar","M",57,1,""],[5316022,"Barza, Chris","M",24,1,""],[5310547,"Barza, Kenny","M",28,1,""],[5331927,"Basaj, Taim Amir","M",11,1,""],[5319676,"Basha, Omar","M",21,1,""],[5317045,"Bassal, Ali","M",38,1,""],[5332966,"Bassal, Taha","M",20,1,""],[5302900,"Bassam, Adam","M",22,0,""],[5300657,"Bassel, Charaf","M",40,1,""],[5332826,"Bassem, Charbel","M",26,1,""],[5319978,"Bassil, Julien","M",17,1,""],[5310911,"Bassil, Michael","M",29,0,""],[5319986,"Bassil, Thomas","M",20,1,""],[5333040,"Bassim, Ghadi","M",14,1,""],[5330580,"Batlouni, Ralf","M",16,1,""],[5327946,"Batmen, Nour","F",25,1,""],[5330599,"Battikha, Georges","M",31,1,""],[5316456,"Bawab, Hala","F",27,1,""],[5308151,"Bayan, Mohamad","M",25,1,""],[5320712,"Baydoun , Radwan","M",12,1,""],[5317053,"Baydoun, Abel El Rahman","M",28,1,""],[5317061,"Baydoun, Ahmad","M",30,1,""],[5326370,"Baydoun, Hussein","M",9,1,""],[5313775,"Baydoun, Khalil Mohamad","M",28,1,""],[5314259,"Baydoun, Maher","M",56,1,""],[5314267,"Baydoun, Rayan","M",22,0,""],[5327954,"Baydoun, Zein","M",11,1,""],[5332281,"Bayoumi Diana","F",25,1,""],[5326990,"Bayoumi, Fouad","M",9,1,""],[5326923,"Baz, Karam","M",29,1,""],[5305497,"Bazarbashian, Krikor","M",30,0,""],[5321107,"Bazzi, Ali","M",19,1,""],[5323690,"Bazzi, Ali Hadi","M",19,1,""],[5323703,"Bazzi, Hassan","M",22,1,""],[5326389,"Bazzi, Moustafa","M",15,1,""],[5323908,"Bchara, Anthony","M",20,1,""],[5323916,"Bchara, Charbel","M",17,1,""],[5323924,"Bchara, Eugenie","F",20,0,""],[5315794,"Bchara, Peter","M",31,1,""],[5314941,"Bchouty, Mounir Maroun","M",27,0,""],[5319439,"Beaini, Peter","M",27,1,""],[5305241,"Beaino, Roy","M",44,1,""],[5333288,"Beainy, Ralph","M",8,1,""],[5333296,"Beainy, Tony","M",9,1,""],[5328527,"Bechaalany, Anthony","M",16,1,""],[5311144,"Bechaalany, Fared","M",27,1,""],[5328330,"Bechalany, Anthony","M",16,1,""],[5311950,"Bechalany, Farid","M",56,1,""],[5321271,"Bechara, Charbel","M",28,1,""],[5328756,"Bechelany, Anthony","M",16,1,""],[5307457,"Bedoyan, Hrag","M",34,0,""],[5301947,"Bedrossian, Jacques","M",66,1,""],[5304474,"Bedrossian, Pascal","M",26,1,""],[5322650,"Beiz, Abbas Hussein","M",11,1,""],[5322669,"Beiz, Ali Hassan","M",14,1,""],[5318114,"Bejani, Elia Anis","M",15,1,""],[5331234,"Bejjani, Dylan","M",14,1,""],[5311233,"Bejjani, Elia","M",15,1,""],[5324890,"Bekhazi, Alexandre","M",14,1,""],[5304725,"Bendaly, Elie","M",73,1,""],[5315620,"Berjak, Hana Mounir","F",28,1,""],[5334284,"Berjawi Jawad","M",16,1,""],[5310067,"Berri, Ibrahim","M",31,1,""],[5307732,"Berro, Mahdi","M",29,1,""],[5305500,"Beydoun, Abdallah","M",51,1,""],[5310695,"Biri, Fouad","M",17,1,""],[5310687,"Biri, Ghadi","M",15,1,""],[5317614,"Birro, Louay","M",27,1,""],[5310075,"Bitar, Antoine","M",26,1,""],[5308720,"Bitar, Joseph","M",50,0,""],[5302480,"Bitar, Nassim","M",45,1,""],[5305853,"Bitar, Roland","M",41,1,""],[5325420,"Bitar, Sam","M",12,1,""],[5326397,"Bitar, Sari","M",12,1,""],[5308011,"Bitar, Youssef","M",50,1,""],[5328888,"Bitarian, Garo Andrea","F",11,1,""],[5325439,"Bittar, Sari","M",12,1,""],[5333458,"Bleibil, Dana","F",11,1,""],[5333466,"Bleibil, Muhammad","M",12,1,""],[5311780,"Bleik, Mohamad","M",44,1,""],[5301467,"Bohlok, Houssam","M",40,0,""],[5331412,"Bolbol Ali Mostafa","M",12,1,""],[5329884,"Bomjahed, Naji","M",9,1,""],[5329892,"Bomjahed, Ralf","M",8,1,""],[5328349,"Borji, Thea","M",15,1,""],[5311349,"Bou Alia, Mohamad","M",36,0,""],[5311241,"Bou Assi, Mae","M",15,1,""],[5311551,"Bou Dib, Antoine","M",18,1,""],[5326885,"Bou Elias, Romero","M",10,1,""],[5310890,"Bou Fakhr, Adam","M",19,1,""],[5310970,"Bou Fakhr, Shadi","M",17,1,""],[5322677,"Bou Ghannam, Bahaa","M",15,1,""],[5324580,"Bou Ghannam, Firas","M",25,1,""],[5310237,"Bou Ghannam, Mazen","M",65,1,""],[5323711,"Bou Ghannam, Rani","M",23,1,""],[5321832,"Bou Haidar, Nabil Mohamad","M",16,1,""],[5302552,"Bou Hamdan, Samir","M",66,1,""],[5322286,"Bou Hamdan, Shadi","M",19,1,""],[5334160,"Bou Kheir Roy","M",9,1,""],[5333989,"Bou Kheir, Roy","M",9,1,""],[5324378,"Bou Maachar, Nadim Andre","M",23,1,""],[5324386,"Bou Maachar, Tarek Andre","M",31,1,""],[5310245,"Bou Mattar, Jad","M",31,1,""],[5313686,"Bou Merhy , Ziad Steven","M",16,1,""],[5313058,"Bou Mitri, Rayan","M",18,1,""],[5318122,"Bou Mjahid, Hadi","M",19,1,""],[5318130,"Bou Mjahid, Naji","M",51,0,""],[5331935,"Bou Nehme, Raphael","M",23,1,""],[5321115,"Bou Rafeh, Amir","M",17,1,""],[5334136,"Bou Salman Naji","M",47,1,""],[5318718,"Bouchedid, Antoine","M",75,1,""],[5305993,"Bouery, Christian","M",29,1,""],[5305519,"Boughanem, Ghazi","M",30,1,""],[5305527,"Boughanem, Rami","M",51,1,""],[5305535,"Boughanem, Samah","M",51,1,""],[5325781,"Bouhabib, Eric","M",20,1,""],[5309492,"Boukhari, Ahmad","M",49,1,""],[5309506,"Boukhari, Mahmoud","M",40,1,""],[5302749,"Boulos, Carlos","M",22,1,"CM"],[5307945,"Boulos, Robert","M",55,1,""],[5325447,"Boumjahed, Hadi","M",19,1,""],[5332109,"Bourji, Houssein","M",16,1,""],[5324092,"Bourji,Ali Ghaleb","M",15,1,""],[5327180,"Boustani, Thomas","M",15,1,""],[5305934,"Boustany, Harly","M",56,1,""],[5311969,"Boutros, Hakim","M",38,1,""],[5331099,"Boutros, Matheo","M",13,1,""],[5328896,"Bouzerdane, James","M",23,1,""],[5316030,"Boyrazian, Raffi","M",39,1,""],[5307597,"Braidy, Mohamad","M",31,0,""],[5300649,"Braydi, Chawki","M",62,1,""],[5310563,"Breidy, Ali","M",22,1,""],[5311977,"Breidy, Mariam","F",24,1,""],[5308135,"Briedi,Ali","M",22,1,""],[5304571,"Brounsouzian, Hrair","M",49,0,""],[5319994,"Bsaibess, Brian","M",13,1,""],[5324904,"Bsat, Kinana","M",17,1,""],[5310571,"Bshouti, Mounir","M",27,1,""],[5329906,"Camilos, Nicolas","M",14,1,""],[5315808,"Chaaban, Mazen","M",26,1,""],[5328900,"Chaaban, Mohamad Dib Nidal","M",20,1,""],[5332338,"Chaaban, Ragheb","M",60,1,""],[5322685,"Chaachou, Ali Yassin","M",13,1,""],[5323720,"Chaalan, Hatem","M",52,1,""],[5331340,"Chaaraak, Ali Mohamad","M",40,1,""],[5317622,"Chaaya, Alain","M",25,1,""],[5305861,"Chaaya, Antoine","M",58,0,""],[5327059,"Chaaya, Charbel","M",15,1,""],[5321280,"Chaaya, Jean Paul","M",19,1,""],[5321123,"Chaaya, Morched","M",48,1,""],[5327750,"Chaaya, Ribal","M",34,1,""],[5324742,"Chabab, Sarah","M",23,1,""],[5330394,"Chadad,Imad","M",55,1,""],[5332346,"Chaddoud, Philippe","M",9,1,""],[5327563,"Chaheen, Raed","M",17,0,""],[5333474,"Chahine, Karim","M",18,1,""],[5324599,"Chahine, Karim Rabih","M",17,1,""],[5323932,"Chahine, Youssuf","M",15,1,""],[5327199,"Chahoud, Ely","M",11,1,""],[5301653,"Chahrour, Ibrahim","M",29,0,"IM"],[5324602,"Chahrour, Jad","M",24,1,""],[5319390,"Chaker, Jawdat","M",80,1,""],[5314950,"Chalhoub, Antoine Edgar","M",18,1,""],[5314968,"Chalhoub, Antoine Wiliam","M",20,1,""],[5310580,"Chalhoub, Mohamad","M",25,1,""],[5328357,"Chalhoub, Pierre","M",18,1,""],[5306736,"Chalhoub, Wadih","M",76,1,""],[5305675,"Chamaoun, Elias","M",66,1,""],[5307201,"Chames, Ayman","M",56,1,""],[5324610,"Chami, Amir","M",13,1,""],[5327962,"Chami, Ibrahim Ramzi","M",13,1,""],[5321611,"Chami, Mahmoud","M",19,1,""],[5324912,"Chami, Mahmoud Maan","M",19,1,""],[5333148,"Chami, Oussamaa","M",26,1,""],[5325935,"Chami,Bachar","M",27,1,""],[5317630,"Chammas, Georgio","M",25,1,""],[5304334,"Chammas, Karim","M",24,1,""],[5313961,"Chamoun , George Oliver","M",22,1,""],[5316901,"Chamoun Elias","M",40,1,""],[5328535,"Chamoun, John","M",11,1,""],[5317410,"Chamoun, Maroun","M",67,1,""],[5331242,"Chamoun, Peter","M",19,1,""],[5321840,"Chamoun, Scarlette","F",13,1,""],[5321620,"Chamseddine, Chadi","M",27,1,""],[5324920,"Chamseddine, Ibrahim","M",21,1,""],[5332397,"Chamseddine, Ralph","M",13,1,""],[5318661,"Chamseddine, Riham","F",48,1,""],[5321131,"Charaf, Karim","M",26,1,""],[5326931,"Charafeddine Chehayeb, Naji","M",25,1,""],[5330602,"Charafeddine, Samer","M",30,1,""],[5311985,"Charafeddine, Towfik","M",46,1,""],[5331943,"Charafeldin, Assil","F",26,1,""],[5333105,"Charanek Yara","F",15,1,""],[5308690,"Charife, Ahmad","M",62,1,""],[5306272,"Charkieh, Mohamad","M",27,1,""],[5304776,"Chartouni, Marc","M",21,1,""],[5306000,"Chartouni, Mario","M",24,1,""],[5303303,"Chatila, Abdulkader","M",56,0,""],[5304768,"Chatila, Mohamad","M",37,1,""],[5324394,"Chatilla, Abdulrahman","M",17,1,""],[5308267,"Chatilla, Mohamad Khair","M",28,1,""],[5315816,"Chdid, Jad","M",22,1,""],[5309514,"Cheaito, Mohamad","M",46,1,""],[5309522,"Chebib, Nader","M",26,1,""],[5305942,"Chebly, Chawky","M",56,1,""],[5304784,"Chebly, Pierre","M",58,1,""],[5304792,"Chebly, Samir","M",29,1,""],[5322006,"Chedid, Anthony","M",22,1,""],[5309972,"Chedid, Jean-Marc","M",29,1,""],[5305950,"Chedid, Joseph","M",56,1,""],[5330610,"Chedid, Robin","M",22,1,""],[5318882,"Chehab, Hussein","M",38,1,""],[5310717,"Chehab, Nada","F",69,1,""],[5316049,"Chehabeddine, Tareq","M",26,1,""],[5325455,"Chehade, Adam El Hajj","M",10,1,""],[5324939,"Chehade, Christie","M",15,1,""],[5306744,"Chehade, Haitham","M",76,1,""],[5329329,"Chehade, Karim","M",14,1,""],[5306752,"Chehadeh, Dima","M",76,1,""],[5323495,"Chehadeh, Hady","M",23,1,""],[5325463,"Chehayeb, Jad","M",19,1,""],[5329914,"Chehayeb, Kayan","M",8,1,""],[5333059,"Chehwan, Angelo","M",21,1,""],[5331447,"Cherri, Ali","M",7,1,""],[5331455,"Cherri, Safi","M",49,1,""],[5313732,"Chidiac , Emile Charbel","M",29,1,""],[5313724,"Chidiac , Emile Philippe","M",25,1,""],[5313929,"Chidiac Alexandre","M",17,1,""],[5313910,"Chidiac Joseph","M",19,1,""],[5304342,"Chidiac, Alexandre","M",24,1,""],[5313180,"Chidiac, Ghady","M",25,1,""],[5300851,"Chidiac, Henry","M",46,1,""],[5310741,"Chidiac, Lamar Abdo","M",31,1,""],[5316057,"Chiha, Raymond Rami","M",40,1,""],[5311993,"Chihade, Ragheb","M",51,1,""],[5308615,"Chihade, Samieh","M",31,1,""],[5330629,"Chkeir, Maarouf","M",24,1,""],[5304466,"Chlela, Karen","F",25,0,""],[5314976,"Chmeit, Najwa","M",56,1,""],[5331706,"Choucair, Elias","M",18,1,""],[5333695,"Chouche Adam Imad","M",15,1,""],[5333687,"Chouche Mohamad Imad","M",17,1,""],[5334322,"Chouche, Adam","M",15,1,""],[5327024,"Choueiri, Georgio","M",15,1,""],[5309530,"Choueiri, Ramzi","M",66,1,""],[5334101,"Choukair Rinad","M",25,1,""],[5326400,"Choukair, Mohammad Jawad","M",15,1,""],[5330416,"Choukri, Marianne","F",27,1,""],[5312582,"Chouman Abbas","M",18,1,""],[5317207,"Christ, Aramali","M",14,1,""],[5318149,"Christiano, Costantine","M",26,1,""],[5329337,"Chweikh, Hamza","M",18,1,""],[5318033,"Costantine, Christiano","M",19,1,""],[5324106,"Costantine,Christiano","M",19,1,""],[5324114,"Costantine,Theo","M",14,1,""],[5316065,"Dabaghi, Sima Omar","F",15,1,""],[5316073,"Dabaghi, Yara Omar","F",18,1,""],[5308941,"Dabousi, Omar","M",21,1,""],[5314275,"Daccache, Elie","M",25,1,""],[5333482,"Dada, Rafi","M",12,1,""],[5332303,"Dagher, Dany","M",47,1,""],[5304288,"Dagher, George","M",44,1,""],[5322294,"Dagher, Habib","M",41,0,""],[386011546,"Dagher, John","M",61,1,""],[5313007,"Dagher, Ralph","M",33,1,""],[5333067,"Dagher, Ralph","M",12,1,""],[5327202,"Dagher, Roberto","M",26,1,""],[5300207,"Dagher, Walid","M",54,0,""],[5327210,"Dahabi, Samir","M",23,1,""],[5305683,"Dahdah, Antoine","M",78,1,""],[5318351,"Dahdah, Frederick","M",36,1,""],[5305691,"Dahdah, Hanna","M",26,1,""],[5310750,"Dahdah, John","M",19,1,""],[5305705,"Dahdah, Joseph","M",55,1,""],[5310768,"Dahdah, Ryan","M",15,1,""],[5326419,"Daher, Ali","M",11,1,""],[5313198,"Daher, Etienne","M",35,1,""],[5328918,"Daher, Francois","M",11,1,""],[5323509,"Daher, Jad","M",30,1,""],[5326427,"Daher, Jawad","M",15,1,""],[5328365,"Daher, Jihad Assad","M",42,1,""],[5326036,"Daher, Karl","M",10,1,""],[5315824,"Daher, Michel","M",32,1,""],[5326044,"Daher, Michel","M",12,1,""],[5326435,"Daher, Rawan","F",13,1,""],[5329663,"Daher, Stephan","M",16,1,""],[5326192,"Daher, Walid","M",37,1,""],[5330491,"Daher,Edmond","M",27,1,""],[5313465,"Dakik, Alexander","M",33,1,""],[5317070,"Dakik, Mohamad","M",26,1,""],[5308364,"Dalal, Mozhar","M",61,1,""],[5312000,"Dalati, Ousama","M",56,1,""],[5312019,"Dalli, Jalal","M",23,1,""],[5305187,"Dalli, Samer","M",26,1,""],[5330122,"Damerji, Adam","M",12,1,""],[5329345,"Damerji, Yasmine","F",23,1,""],[5327482,"Damirji,Yousseh","M",16,1,""],[5308887,"Dani,Taha","M",28,1,""],[5320577,"Daou , Kenan","M",32,0,""],[5327229,"Daou, Georgio","M",24,1,""],[5323517,"Daou, Weam","M",26,0,""],[5304806,"Daou, Ziad","M",54,0,""],[5330912,"Daoud Chadi Antoine","M",19,1,""],[5320003,"Daouk, Wissam","M",20,1,""],[5320984,"Daoura , David","M",41,1,""],[5320917,"Daoura , Evan","M",12,1,""],[5320925,"Daoura , Stephan","M",11,1,""],[5309727,"Darazi, Ahmad","M",16,1,""],[5330637,"Darsa, Mohamad","M",25,1,""],[5316081,"Darweeche , Hussein","M",12,1,""],[5313082,"Darweeche, Roaa","F",20,1,"WCM"],[5320828,"Darweesh, Abbass","M",38,1,""],[5324947,"Darwich, Adam","M",22,1,""],[5308666,"Darwich, Souhayb","M",31,1,""],[5309239,"Darwich,Mohamad","M",47,1,""],[5327032,"Darwiche, Lynn","F",10,1,""],[5312663,"Darwiche, Mohamad","M",12,1,""],[5316090,"Darwish, Gebrael Mohamad","M",23,1,""],[5331951,"Darwish, Sami","M",10,1,""],[5322693,"Dassouki, Amr","M",26,1,""],[5318360,"Dawlabani, Charbel","M",21,1,""],[5307090,"Dawra, Fady","M",36,1,""],[5309549,"Dayekh, Mohamad","M",32,1,""],[5312027,"Dbaibo, Abdulrahman","M",30,1,""],[5311357,"Dbaibo, Abed","M",30,0,""],[5313600,"Dbouk , Ghassan Ahmad","M",21,1,""],[5312035,"Dbouk, Mohamad","M",26,1,""],[5313791,"Dbouk, Moustafa Nadim","M",14,1,""],[5318645,"Deaibess, Jonathan","M",9,1,""],[5328926,"Debes, Karim","M",16,1,""],[5312043,"Debes, Salem","M",38,1,""],[5307589,"Debes, Wael Mansour","M",30,1,""],[5330130,"Deeb, Ali","M",34,1,""],[5322707,"Deeb, Kassem Mohamad","M",14,1,""],[5330645,"Deeb, Mohamad Ali","M",28,1,""],[5332400,"Dekmak, Mohamad","M",15,1,""],[5308038,"Demirjian,Mark","M",47,0,""],[5326877,"Derbass, Mariam","F",32,1,""],[5330866,"Derbedrossian, Zaven","M",37,1,""],[5320976,"Dergham , Adam","M",14,1,""],[5313872,"Dergham , Fadi Christian","M",20,1,""],[5328934,"Dergham, Ali Rami","M",26,1,""],[5324955,"Dernaika, Omar","M",15,1,""],[5323240,"Dernaika,Fadi","M",44,1,""],[5323258,"Dernaika,Issam","M",17,0,""],[5323266,"Dernaika,Yara","F",14,1,""],[5307961,"Dersarkissian, Roben","M",57,1,""],[5317649,"Dhaini, Ali","M",19,1,""],[5318947,"Dia, Daniel","M",19,1,""],[5321140,"Dia, Hadi","M",20,1,""],[5329353,"Diab, Adam","M",20,1,""],[5328543,"Diab, Dia Hassan","F",9,1,""],[5332419,"Diab, Jawad","M",14,1,""],[5332583,"Diab, Jawad","M",26,1,""],[5317657,"Diab, Majd","M",19,1,""],[5305330,"Diab, Moetassem","M",33,0,""],[5331250,"Diab, Sarah","F",14,1,""],[5332354,"Diab, Sarah Hassan","F",16,1,""],[5311543,"Diab, Yousef","M",16,1,""],[5327474,"Diab,Majd","M",11,1,""],[5330653,"Dib, Ali","M",29,1,""],[5310776,"Dib, Danielle","F",18,0,""],[5310784,"Dib, Maria","F",18,0,""],[5312833,"Dibajeh Mohamad, Fadol","M",24,1,""],[5330920,"Dinnawi, Raouf","M",49,1,""],[5322715,"Dirani, Ali","M",11,1,""],[5314283,"Dirani, Hussien","M",38,1,""],[5332117,"Dirany, Mhammad","M",22,1,""],[5310598,"Dirany,Hssien","M",38,1,""],[5334330,"Diyab, Ali Amiry","M",17,1,""],[5327237,"Dokmak, Rida","M",20,1,""],[5305713,"Douaihy, Antoine","M",41,1,""],[5307465,"Doueihy,Toufic","M",36,1,""],[5333300,"Doueiri, William","M",12,1,""],[5311152,"Doughan, Khaled","M",27,1,""],[5324963,"Douglas, Zad","M",26,1,""],[5315336,"Doulani, Ghassan Moussa","M",45,1,""],[5305870,"Doumani, Jad","M",30,1,""],[5314291,"Doumanian, Tro","M",35,1,""],[5316626,"EL Assad, Arab","F",50,1,""],[5316839,"EL Bayat , Ismail","M",21,1,""],[5320127,"EL Khoury, Alexander","M",13,1,""],[5320135,"EL Khoury, Elias","M",16,1,""],[5300401,"EL Mahmoud, AbdulAziz","M",54,1,"CM"],[5303133,"Edelby, Ahmad","M",58,0,""],[5326443,"Eid, Christopher","M",19,1,""],[5300118,"Eid, Fadi","M",56,1,"IM"],[5310792,"Eid, Floron","M",51,0,""],[5328373,"Eid, Joe","M",15,1,""],[5326206,"Eid, Oliver","M",16,1,""],[5307880,"Eid, Wissam","M",31,0,""],[5322723,"Eidi, Dima Imad","M",11,1,""],[5322731,"Eidi, Hassan Ali","M",17,1,""],[5322740,"Eidi, Karim Imad","M",11,1,""],[5330424,"Eido, Nawar","M",52,1,""],[5306280,"Eidy, Mohamad","M",24,1,""],[5322758,"El Aawar, Adam","M",18,1,""],[5322766,"El Aawar, Eddy","M",18,1,""],[5334276,"El Afiouni Issac","M",9,1,""],[5311160,"El Agha, Hashem","M",24,1,""],[5306140,"El Ahmadieh, Raed","M",60,1,""],[5331960,"El Akoum, Aschraf","M",41,1,""],[5329361,"El Akoum, Mariam","F",12,1,""],[5327245,"El Ali, Issam","M",14,1,""],[5327970,"El Aly, Issam","M",14,1,""],[5330149,"El Amine, Abdallah","M",32,1,""],[5306620,"El Anis, Sirin","F",20,1,""],[5311012,"El Anwar, Suzan","F",38,1,""],[5327768,"El Aoji, Karim","M",23,1,""],[5313155,"El Arid, Joe","M",21,1,""],[5334381,"El Asmar Roy","M",31,1,""],[5320879,"El Asmar, Khaled Malek","M",20,1,""],[5318955,"El Baba, Mohamad","M",18,1,""],[5300886,"El Baba, Rawan","M",76,0,""],[5327989,"El Bacha, Charbel","M",14,1,""],[5333490,"El Banna, Abdul Rahman","M",12,1,""],[5329370,"El Batlouni, Ralph","M",16,1,""],[5321859,"El Beainy, Peter","M",27,1,""],[5328632,"El Boukhari, Khaled","M",32,1,""],[5314046,"El Bsat , Haissam Sara","F",17,1,""],[5314054,"El Bsat, Haissam Ahmad","M",14,1,""],[5313090,"El Chaar Abed el Rahman ,Oussama","M",15,1,""],[5324270,"El Chaar, Ahmad","M",14,1,""],[5324262,"El Chaar, Julie","F",10,1,""],[5331463,"El Chamieh, Celia","F",5,1,""],[5313074,"El Dada, Abdel Halim","M",17,1,""],[5317665,"El Dada, Samar","F",12,1,""],[5309980,"El Dahr, Charbel","M",20,1,""],[5308704,"El Dali, Adam","M",18,1,""],[5307988,"El Dani, Taha","M",28,1,""],[5315344,"El Darazi, Karam Ahmad","M",16,1,""],[5322022,"El Din, Ali Alaa","M",25,1,""],[5310920,"El Dirani , Rayane","F",40,1,""],[5328381,"El Etri, Rola","F",42,1,""],[5322413,"El Fahel,Maria","F",32,1,""],[5329922,"El Fakih, Rayan","M",16,1,""],[5324190,"El Ferkh, Chris","M",11,1,""],[5324203,"El Ferkh,Kyana","F",9,1,""],[5308640,"El Ferri, Bassam","M",56,1,""],[5311195,"El Habboub, Abdul Rahman","M",47,1,""],[5309778,"El Habboub, Hicham","M",16,1,""],[5309557,"El Hachach, Ramy","M",34,1,""],[5318696,"El Hachem , Charbel","M",11,1,""],[5318688,"El Hachem, George","M",10,1,""],[5310083,"El Haddad, Joe","M",25,1,""],[5315832,"El Haddad, Michel","M",26,1,""],[5320836,"El Hage , Adam","M",11,1,""],[5330939,"El Haj, Ahmad","M",13,1,""],[5304059,"El Hajj, Abdelkader","M",56,1,""],[5308194,"El Hajj, Abdulkhader","M",59,1,""],[5319412,"El Hajj, Ali","M",14,1,""],[5323940,"El Hajj, Marc","M",18,1,""],[5323959,"El Hajj, Mikael","M",12,1,""],[5307210,"El Hajj, Mohamad","M",56,0,""],[5332834,"El Hajj, Mohamad","M",14,1,""],[5319420,"El Hajj, Rimie","F",11,1,""],[5306809,"El Hajj, Taha","M",76,1,""],[5320011,"El Hajj, Vera","F",16,1,""],[5309999,"El Hajj, Youssef","M",40,0,""],[5305969,"El Hakim, Baudelaire","M",56,1,""],[5315352,"El Halabi, Mohamad Rami","M",22,1,""],[5316987,"El Halabi, Rama","F",17,1,""],[5328390,"El Halabi, Sienna","F",9,1,""],[5328403,"El Halabi, Wassim","M",10,1,""],[5314038,"El Harake , Hisham Rafi","M",24,1,""],[5333873,"El Hares Rayn","M",11,1,""],[5323320,"El Hariri, Karim","M",27,1,""],[5306779,"El Hassan, Nawal","M",76,1,""],[5307104,"El Hassan, Nawal","M",24,1,""],[5322782,"El Hayek, Khaled Mohamad","M",24,1,""],[5312051,"El Hayek, Omar","M",40,1,""],[5331978,"El Hayek, Omar Osman","M",12,1,""],[5318726,"El Helou, Naji","M",51,1,""],[5313503,"El Hijjawi, Mazen","M",22,1,""],[5322030,"El Hindi, Said","M",34,1,""],[5333725,"El Hitti, Anthony","M",16,1,""],[5322790,"El Homsi, Shadi","M",15,1,""],[5309409,"El Homsi,Mohamad Yehya","M",70,1,""],[5321298,"El Horr, Bassel","M",44,1,""],[5304733,"El Hossari, Machaal","M",42,0,""],[5330157,"El Hourani, Nehme","M",14,1,""],[5324408,"El Issa, Ali","M",24,1,""],[5302714,"El Itaoui, Mohammad Merhi","M",73,1,""],[5309948,"El Jamal, Adam","M",16,1,""],[5316464,"El Jarmaki, Mohammad","M",32,1,""],[5300231,"El Jawich, Ali","M",62,0,""],[5300380,"El Jawich, Amro","M",31,1,"FM"],[5323525,"El Jawich, Louay","M",10,1,""],[5302919,"El Jawich, Mohammad","M",20,0,""],[5323533,"El Jawich, Qusay","M",10,1,""],[5321638,"El Jisr,Omar","M",11,1,""],[5308798,"El Jundi, Karim","M",20,1,""],[5308801,"El Jundi,Adam","M",21,1,""],[5320887,"El Jurdi, Nabil","M",61,1,""],[5332761,"El Kadi Samer","M",38,1,""],[5312060,"El Kadri, Hassan","M",28,1,""],[5316642,"El Karkafi, Ralph","M",25,1,""],[5319480,"El Kassa , Omar","M",16,1,""],[5307856,"El Kattan, Hadi","M",24,1,""],[5307929,"El Kattan, Zeineddine","M",24,1,""],[5311519,"El Kazzi, Tatiana","F",21,1,""],[5324971,"El Khalil, Rai","M",11,1,""],[5313783,"El Khalili , Zouheir Shafik","M",24,1,""],[5313953,"El Khatib ,Ali .M","M",24,1,""],[5308216,"El Khatib, Ahmad","M",44,1,""],[5304067,"El Khatib, Fady","M",56,1,""],[5315638,"El Khatib, Mosbah Mohamad","M",26,1,""],[5306787,"El Khatib, Natasha","M",76,1,""],[5307112,"El Khatib, Natasha","M",30,1,""],[5328942,"El Khatib, Rayan Mohamad","M",14,1,""],[5331714,"El Khatib, Ryan","M",14,1,""],[5315239,"El Khatib, Selena","M",22,1,""],[5329167,"El Khatib,Younis","M",71,1,""],[5309093,"El Khechin, Imad","M",43,1,""],[5325684,"El Khoder, Walid K","M",45,1,""],[5321034,"El Khoueiry , Teddy","M",21,1,""],[5333253,"El Khoury Gabriel","M",8,1,""],[5333261,"El Khoury Raphael","M",10,1,""],[5324220,"El Khoury, Antonio","M",14,1,""],[5311020,"El Khoury, Brayan","M",31,1,""],[5315360,"El Khoury, Camille Peter","M",20,1,""],[5323967,"El Khoury, Charbel","M",18,1,""],[5311080,"El Khoury, Chebel Rouham","M",22,0,""],[5316103,"El Khoury, Ghassan","M",14,1,""],[5324238,"El Khoury, Jean Pierre","M",11,1,""],[5326982,"El Khoury, Jio","M",12,1,""],[5323975,"El Khoury, John","M",15,1,""],[5326974,"El Khoury, Joseph","M",9,1,""],[5316650,"El Khoury, Pierre Toufic","M",50,1,""],[5310938,"El Khoury, Tarek","M",26,1,""],[5322421,"El Khoury,Christopher","M",15,1,""],[5324181,"El Khoury,Diego","M",15,1,""],[5321522,"El Khoury,Joya","F",22,1,""],[5316111,"El Koudsi, Ahmad","M",12,1,""],[5325790,"El Lakkis, Houssam","M",35,1,""],[5314305,"El Lakkis, Hussein","M",32,1,""],[5324289,"El Mahmoud,Khaled","M",16,1,""],[5321646,"El Masri, Ahmad","M",45,1,""],[5304962,"El Masri, Muheiddine","M",63,1,""],[5315379,"El Mawla, Khalil Issa","M",23,1,""],[5307899,"El Mekdad, Haidar Samir","M",29,1,""],[5311624,"El Melhem, Elias","M",55,1,""],[5320321,"El Merhebi , Bassam","M",20,1,""],[5306795,"El Mounajjed, Marwan","M",76,1,""],[5313520,"El Nawar, Peter","M",18,0,""],[5313287,"El Nemr, Ali Rida","M",19,1,""],[5313279,"El Nemr, Hussein","M",21,1,""],[5313295,"El Nemr, Zein Al Abiddine","M",19,1,""],[5318025,"El Omrani , Ramzi","M",45,1,""],[5315220,"El Omrani,Ramzi","M",45,1,""],[5319471,"El Rahi , Adrian","M",20,1,""],[5329388,"El Ratta, Mohammad Ali","M",25,1,""],[5321018,"El Rayes , Alice","F",53,1,""],[5321549,"El Remlawi , Osama","M",44,1,""],[5313260,"El Rifaii, Abbas","M",17,1,""],[5313252,"El Rifaii, Hassan","M",22,1,""],[5313244,"El Rifaii, Hussein","M",21,1,""],[5324416,"El Sabagh, Reda Maher","M",25,1,""],[5323339,"El Sabbagh, Maher","M",25,1,""],[5302927,"El Saleh, Riham","F",28,0,""],[5302218,"El Samad, Mohamad Omar","M",42,0,""],[5313511,"El Saneh, Youssef","M",22,1,""],[5332427,"El Sarji, Abbass Hussein","M",14,1,""],[5332435,"El Sarji, Ali Hussein","M",13,1,""],[5334233,"El Sayegh Charbel","M",35,1,""],[5329396,"El Sayegh, Maya","F",12,1,""],[5329930,"El Shoumary, Marcel","M",9,1,""],[5330432,"El Solh, Samih","M",17,1,""],[5323738,"El Tannir, Abdul Kader","M",16,1,""],[5324629,"El Tannir, Abdulkader","M",16,1,""],[5323746,"El Tannir, Mostafa","M",17,1,""],[5324637,"El Tannir, Mostapha","M",17,1,""],[5324980,"El Tannir, Yasmine","F",14,1,""],[5330840,"El Tayah, Antoine","M",29,1,""],[5305543,"El Timani, Jihad","M",58,1,""],[5310008,"El Wahsh, Salim","M",45,1,""],[5308461,"El Wak, Milad","M",28,1,""],[5307902,"El Waraa, Mahmoud","M",29,1,""],[5315646,"El Zaart, Yassine","M",26,1,""],[5309891,"El Zaatari Ahmad , Ahlam","F",21,1,""],[5332443,"El Zein, Adel","M",11,1,""],[5333504,"El Zein, Luna","F",12,1,""],[5332451,"El Zein, Mahdi","M",11,1,""],[5313210,"El Zein, Zayne-Eddine","M",15,1,"FM"],[5308178,"El Zouert, Yassin Ali","M",25,1,""],[5322308,"El Zouhairy, Roudy","M",16,1,""],[5319633,"ElBoustany , Marie","F",22,1,""],[5312078,"Eldika, Haidar","M",24,1,""],[5322316,"Elhage, Joe","M",22,1,""],[5312086,"Elmawla, Hadi","M",35,1,""],[5305551,"Endari, Rami","M",25,1,""],[5330513,"Eskandarani,Osman","M",66,1,""],[5320380,"Esper ,AnnaTheresa","F",11,1,""],[5319234,"Eva Skafi","F",15,1,""],[5310253,"Eyad, Mohamad Kor","M",26,1,""],[5301440,"Ezzaldeen, Ayman","M",57,0,""],[5330165,"Ezzeddine, Hisham","M",12,1,""],[5309565,"Ezzeddine, Mahmoud","M",38,1,""],[5325978,"Ezzeddine,Jamal","M",14,1,""],[5325960,"Ezzeddine,Joud","M",10,1,""],[5320020,"Ezzedine, Mohamad","M",23,1,""],[5319684,"Ezzeldine, Issa","M",16,1,""],[5320038,"Ezzo, Enzo","M",18,1,""],[5321867,"Ezzo, Noah","M",21,1,""],[5320046,"Ezzo, Owen","M",18,1,""],[5326087,"Ezzo, Taline","F",5,1,""],[5329400,"Fadel, Ali","M",14,1,""],[5327253,"Fadel, David","M",23,1,""],[5307317,"Fadel, Jack","M",44,1,""],[5319463,"Fadel, Mustapha","M",29,1,""],[5310261,"Fadel, Youssef","M",61,1,""],[5329752,"Fadel,Raef","M",42,1,""],[5333156,"Fadlalah, Shahd","F",13,1,""],[5327997,"Fadlallah, Jad","M",17,1,""],[5330769,"Fahs, Danah","F",25,1,""],[5310040,"Fahs, Hassan","M",45,1,""],[5330777,"Fahs, Kindah","F",14,1,""],[5333512,"Fakherddine, Ahmad","M",16,1,""],[5310946,"Fakhoury, Ali","M",28,1,""],[5304270,"Fakhoury, Dory","M",31,0,""],[5315972,"Fakhoury, Tarek","M",44,1,""],[5325471,"Fakhredeldeen, Maytham","F",12,1,""],[5325480,"Fakhredeldeen, Mojtaba","M",17,1,""],[5313031,"Fakhry, Lynne","F",15,1,""],[5328250,"Fakih, Elias","M",9,1,""],[5330661,"Fakih, Hussein","M",30,1,""],[5318157,"Fakih, Lamar","F",18,1,""],[5301491,"Fakih, Mohamad","M",40,0,""],[5325994,"Fakih,Ali","M",37,1,""],[5328624,"Fakih,Mohammad","M",9,1,""],[5306817,"Fakoua, Khalil","M",76,0,""],[5306825,"Fakoua, Sameh","M",76,1,""],[5324998,"Fala, Ali","M",22,1,""],[5307384,"Faour, Walid","M",40,1,""],[5313139,"Farah, Henry","M",15,1,""],[5332680,"Farah, Josiane Joseph","F",12,1,""],[5306833,"Farah, Ralph","M",76,1,""],[5322804,"Faraj, Antonios","M",26,1,""],[5305250,"Faraj, Daoud","M",55,1,""],[5308933,"Farasha,Wael","M",24,1,""],[5321158,"Fares, Ali","M",28,0,""],[5322049,"Fares, Fares","M",44,1,""],[5320453,"Fares, Hussein","M",26,0,""],[5331986,"Fares, Jayden","M",13,1,""],[5331994,"Fares, Jeremiah","M",16,1,""],[5332001,"Fares, Julian","M",16,1,""],[5325641,"Fares, Vladimir","M",14,1,""],[5317215,"Farfour, Hussein","M",21,1,""],[5326451,"Farhat, Adam","M",10,1,""],[5328411,"Farhat, Ali Samer","M",12,1,""],[5326184,"Farhat, Fidel-Ray","M",10,1,""],[5303443,"Farhat, Hady","M",27,0,""],[5318963,"Farhat, Issa","M",22,1,""],[5303788,"Farhat, Jawad","M",24,1,""],[5309735,"Farhat, Kareem","M",22,1,""],[5305209,"Farhat, Mohamad Ali","M",19,0,""],[5331161,"Farhat, Mohamad Ali","M",23,1,""],[5325005,"Farhat, Mohamad Ram","M",24,1,""],[5302579,"Farhat, Mohamed","M",44,0,""],[5322057,"Farhat, Nabil","M",20,1,""],[5310806,"Farhat, Nour","M",20,1,""],[5304970,"Farhat, Salam","M",40,1,""],[5318378,"Farhat, Yehya Nour","M",18,1,""],[5312574,"Farhat,Abbas Ali","M",27,1,""],[5312094,"Faroun, Swsannn","F",56,1,""],[5316898,"Farra, Marc Anwar","M",36,1,""],[5312736,"Farra,Dalia","M",16,1,""],[5312728,"Farra,Tarek","M",14,1,""],[5312744,"Farra,Yasmine","M",17,1,""],[5322812,"Farran, Christian","M",12,1,""],[5322820,"Farran, Elie","M",13,1,""],[5319692,"Fatfat, Omar","M",28,1,""],[5310270,"Fatmeh, Fawaz","M",31,1,""],[5306841,"Fatrouni, Bassel","M",76,1,""],[5323541,"Fattal, Julian","M",13,1,""],[5331471,"Fattali, Simon","M",71,1,""],[5318017,"Fattouh,Wael","M",33,1,""],[5311365,"Fawaz, Baheej","M",18,1,""],[5325307,"Fawaz, Fatima","F",31,1,""],[5304075,"Fawaz, Fawzi","M",56,1,""],[5302587,"Fawaz, Kassem","M",45,1,""],[5332842,"Fawaz, Lana","M",13,1,""],[5328950,"Fawaz, Mohamad Allaeldine","M",12,1,""],[5309743,"Fawaz, Nadia","F",16,1,"WFM"],[5312566,"Fawaz,Mahmoud Fatme","M",31,1,""],[5308879,"Fawaz,Mohamad","M",17,1,""],[5311632,"Fawzi, Hassan Ali","M",29,1,""],[5330173,"Fayad, Abdallah","M",11,1,""],[5332460,"Fayad, Fadi","M",49,1,""],[5333164,"Fayad, Hala","F",16,1,""],[5304083,"Fayad, Hasan","M",56,1,""],[5331781,"Fayad, Marc","M",13,1,""],[5327776,"Fayad, Michel","M",15,1,""],[5328551,"Fayad, Selim","M",44,1,""],[5317088,"Fayad, Steven","M",22,1,""],[5320399,"Fayyad , Malak","M",9,1,""],[5302935,"Ferneini, Chloe","F",25,1,""],[5310296,"Ferzli, Michel Dany","M",59,1,""],[5310288,"Ferzli,Michael","M",25,1,""],[5307252,"Fidal Al Massih, Adony","M",24,1,""],[5317096,"Flayhan, Zouhair","M",42,0,""],[5317223,"Fleyhan, Zouhair","M",42,1,""],[5319706,"Fneich, Hasan","M",21,1,""],[5323622,"Fouani, Alaa","F",29,1,""],[5313635,"Fouani, Mohamad","M",25,0,""],[5316120,"Fouani, Mohamad Kamal","M",29,1,""],[5305721,"Francis, Habib","M",32,1,""],[5324424,"Francis, Mia Ange","F",17,1,""],[5321301,"Francis, Myriam","F",25,1,""],[5305730,"Frangieh, Joseph","M",27,1,""],[5328004,"Frangieh, Yasma","F",9,1,""],[5305748,"Franjieh, Paul","M",26,1,""],[5333075,"Freiha, Elie Fadi","M",14,1,""],[5308496,"Freiha, Tarek","M",46,1,""],[5304989,"Freiji, Sabri","M",40,1,""],[5317428,"Frem, Antonios","M",17,1,""],[5317673,"Frem, Christos","M",14,1,""],[5300240,"Ftouni, Maan","M",48,0,""],[5307821,"Fugate, David Courtney","M",49,0,""],[5319714,"Gabrees, Ahmad","M",22,1,""],[5329574,"Gabriel, Nissi","M",20,1,""],[5325315,"Garabedian, Sevana","F",12,1,""],[5325323,"Garabedian, Vana","F",12,1,""],[5323550,"Garabet, Charbel","M",17,1,""],[5325013,"Geagea, David","M",10,1,""],[5328969,"Geagea, Karim","M",39,1,""],[5306019,"Gebara, Rony","M",64,1,""],[5326532,"Gerges, Karim","M",18,1,""],[5327571,"Gergess, Jean Paul","M",20,1,""],[5329639,"Ghabach, Maria","M",30,1,""],[5318890,"Ghabris, Ahmad","M",18,1,""],[5319595,"Ghabris,Ahmad","M",22,1,""],[5334110,"Ghadban Anwar","M",8,1,""],[5319722,"Ghadban, Charbel","M",16,1,""],[5326460,"Ghaddar, Mohamad Jawad Khodor","M",9,1,""],[5309751,"Ghaddar, Sirine","F",21,1,""],[5330670,"Ghaida, Ribal","M",17,1,""],[5318823,"Ghaith,Farah","F",14,1,""],[5318831,"Ghaith,Fares","M",12,1,""],[5318840,"Ghaith,Sultan","M",17,1,""],[5333172,"Ghanawi, Heba Mahmoud","F",17,1,""],[5332974,"Ghanawi, Mahmoud Dib","M",51,1,""],[5313970,"Ghandour ,Wissam Hicham","M",36,1,""],[5332699,"Ghandour, Ahmad","M",14,1,""],[5327580,"Ghandour, Allie","M",14,1,""],[5326478,"Ghandour, Allie Mohamad","M",14,1,""],[5333997,"Ghandour, Jad","M",10,1,""],[5327598,"Ghandour, Mohamad","M",40,1,""],[5329418,"Ghandour, Najib","M",13,1,""],[5315840,"Ghanem, Ahmad","M",29,1,""],[5314313,"Ghanem, Camille","M",26,1,""],[5329949,"Ghanem, Carl","M",11,1,""],[5327261,"Ghanem, Elias","M",36,1,""],[5329671,"Ghanem, Georgio","M",14,1,""],[5315387,"Ghanem, Haitham Yehia","M",16,0,""],[5330386,"Ghanem,Ahmad","M",18,1,""],[5321310,"Gharghour, Anthony","M",19,1,""],[5325021,"Gharios, Kyle","M",14,1,""],[5311179,"Gharissa, Mahmoud","M",22,0,""],[5316138,"Gharzeddine, Rawad","M",36,1,""],[5333210,"Ghattas Ryan","M",10,1,""],[5315859,"Ghattas, Adoni","M",20,1,""],[5320054,"Ghattas, Joe","M",16,1,""],[5323754,"Ghazal, Anthony","M",16,1,""],[5306299,"Ghazal, Bilal","M",48,1,""],[5304512,"Ghazal, Khaled","M",56,1,""],[5319730,"Ghazal, Rawan","F",23,1,""],[5324173,"Ghazal,Anthony","M",16,1,""],[5319609,"Ghazal,Rawan","F",23,1,""],[5314321,"Ghazale, Bassel","M",23,1,""],[5310300,"Gherizy, Abdulirida","M",27,1,""],[5320950,"Ghezzawi , Khodr","M",13,1,""],[5320941,"Ghezzawi , Souheil","M",19,1,""],[5332893,"Ghieh, Joseph","M",11,1,""],[5303478,"Ghnatios, Ralph","M",36,1,""],[5334004,"Ghneim, Mounir","M",26,1,""],[5311039,"Ghorabi, Adam","M",19,1,""],[5320461,"Ghoson, Ali","M",26,1,""],[5320470,"Ghoson, Sara","M",26,1,""],[5334012,"Ghossein, Zein","M",18,1,""],[5328560,"Ghossoub, Anthony","M",22,1,""],[5331269,"Ghostine, Alexandre","M",17,1,""],[5307686,"Ghoussainy, Maher","M",39,1,""],[5329957,"Ghrayeb, Zayn","M",8,1,""],[5329965,"Ghreizy, Alexander","M",9,1,""],[5316146,"Ghubril, Fouad Adib","M",82,1,""],[5323576,"Girard, Sebastien","M",16,1,""],[5328160,"Gizawi, Yasmine","F",15,1,""],[5325030,"Goldstein, Karl","M",15,1,""],[5307040,"Gostanian, Kevork","M",66,1,""],[5305888,"Gregory, Jhonny","M",35,1,""],[4136845,"Grishina, Alexandra","F",44,0,"WFM"],[5323983,"Gulgulian, Marc","M",20,1,""],[5327601,"Habanjar, Mohammad","M",11,1,""],[5303486,"Habash, Mohamad","M",34,1,""],[5309760,"Habash, Wafic","M",19,1,""],[5320062,"Haber, Henry","M",41,1,""],[5320607,"Habib , Fawzi","M",26,1,""],[5319749,"Habib, Fawzi","M",26,1,""],[5311594,"Habli, Reina","F",13,1,""],[5308925,"Hachem, Ahmad","M",34,1,""],[5326486,"Hachem, Jawad","M",19,1,""],[5320070,"Hachem, Jean Paul","M",19,1,""],[5316154,"Hachem, Mahmoud Ahmad","M",37,1,""],[5328764,"Hachem, Marc","M",18,1,""],[5318971,"Hachem, Rawan","F",26,1,""],[5312590,"Hachicho,Ghida","F",28,1,""],[5320089,"Hadad, Chady","M",26,1,""],[5308542,"Hadad, Elie","M",24,1,""],[5320097,"Hadad, Kevin","M",17,1,""],[5305756,"Hadba, Ihsan","M",22,1,""],[5305764,"Hadba, Omar","M",26,1,""],[5332796,"Haddad Sebastien-Lucas","M",13,1,""],[5306302,"Haddad, Antonio","M",23,1,""],[5327270,"Haddad, Bassam","M",32,1,""],[5327610,"Haddad, Charbel-Anthony","M",22,1,""],[5328977,"Haddad, Cyril","M",11,1,""],[5326940,"Haddad, Elie","M",32,1,""],[5321654,"Haddad, Jad","M",23,1,""],[5314330,"Haddad, Joe","M",26,1,""],[5316669,"Haddad, Peter","M",16,1,""],[5330688,"Haddad, Talia","M",23,1,""],[5321557,"Haddad,Karim","M",27,1,""],[5331137,"Hadi Kansou","M",13,1,""],[5322839,"Hadidian, Sako","M",18,1,""],[5330785,"Hadjian, Sosse-Maro","F",12,1,""],[5326494,"Hadla, Hadi","M",14,1,""],[5327288,"Haeck, Joe","M",12,1,""],[5308348,"Hafez, Zaher","M",24,1,""],[5328985,"Hage, Chadi Lydia","F",14,1,""],[5322324,"Hage, Peter","M",23,1,""],[5320798,"Haidar , Bachar","M",37,1,""],[5327296,"Haidar Ahmad, Mourtada","M",14,1,""],[5333377,"Haidar Rayan","M",30,1,""],[5308399,"Haidar, Ahmad","M",36,1,""],[5322065,"Haidar, Ali Harb","M",16,1,""],[5322847,"Haidar, Ali Harb","M",16,1,""],[5333520,"Haidar, Amir","M",14,1,""],[5311586,"Haidar, Amjad","M",17,1,""],[5323762,"Haidar, Bahaa","M",23,1,""],[5318386,"Haidar, Hadi","M",18,1,""],[5301645,"Haidar, Murad","M",43,1,""],[5328578,"Haidar, Riad","M",17,1,""],[5316162,"Haidar, Sana","F",32,1,""],[5303958,"Haidar, Wassim","M",40,0,""],[5320615,"Haidoura , Yara","F",16,1,""],[5325498,"Haidoura, Ali","M",14,1,""],[5319757,"Haidoura, Yara","F",16,1,""],[5330181,"Haj Ali, Ayman","M",37,1,""],[5334268,"Haj-Hassan Mohammad","M",22,1,""],[5307864,"Hajar, Salam","F",32,1,""],[5317681,"Hajj Hassan, Hussein","M",18,1,""],[5320100,"Hajj, Joe","M",22,1,""],[5305268,"Hajjar, Amjad","M",66,1,""],[5304091,"Hajjar, Bashar","M",56,1,""],[5323568,"Hajjar, Joe","M",17,1,""],[5313066,"Hakim, Elie","M",15,1,""],[5325803,"Hakim, Mohamad","M",30,1,""],[5332923,"Halabi, Naji","M",18,1,""],[5320844,"Halabi,Rita","F",26,1,""],[5307031,"Halawani, Mohamad","M",53,1,""],[5310814,"Halik, Walid","M",61,0,""],[5314720,"Halima, Misbah","M",27,0,""],[5306850,"Hallak, Mumtaz","M",76,1,""],[5310822,"Hallal, Ali","M",57,1,""],[5306868,"Halloumeh, Farid","M",76,1,""],[5305349,"Hamad, Chadi Syr","M",66,1,""],[5317690,"Hamad, Ismael","M",21,0,""],[5322855,"Hamad, Issa","M",17,1,""],[5308682,"Hamada, Omar","M",22,1,""],[5331005,"Hamadane, Hassan","M",14,1,""],[5331170,"Hamadani, Hassan","M",14,1,""],[5322863,"Hamadani, Rida","M",25,0,""],[5327784,"Hamade, Rawad","M",12,1,""],[5311047,"Hamadeh, Bahij","M",51,1,""],[5317100,"Hamadeh, Karim","M",26,1,""],[5312671,"Hamadeh, Sally","F",15,1,""],[5328420,"Hamadeh, Yasmeen","M",25,1,""],[5303621,"Hamawi, Karim","M",28,0,""],[5334195,"Hamcho Hassan Ali","M",29,1,""],[5320631,"Hamdan , Hasan","M",14,1,""],[5316758,"Hamdan, Ali","M",56,1,""],[5326508,"Hamdan, Ali","M",12,1,""],[5326516,"Hamdan, Ali Mohamad","M",12,1,""],[5306124,"Hamdan, Amani","F",40,1,""],[5323770,"Hamdan, Amir","M",17,1,""],[5329426,"Hamdan, Hassan","M",14,1,""],[5326524,"Hamdan, Jawad","M",10,1,""],[5323347,"Hamdan, Taha","M",19,1,""],[5330190,"Hamdar, Ahmad","M",10,1,""],[5326559,"Hamdar, Hadi","M",12,1,""],[5326591,"Hamdar, Jawad","M",14,1,""],[5310318,"Hamdar, Nadim","M",18,1,""],[5309379,"Hamdar, Nawar","M",23,1,""],[5310326,"Hamdar, Sabine","F",19,1,""],[5331277,"Hamdar, Youssef","M",14,1,""],[5303818,"Hamdoun, Jad","M",23,0,""],[5306310,"Hamdoun, Karim","M",17,0,""],[5303826,"Hamdoun, Rayan","M",21,0,""],[5306329,"Hamieh, Hassan","M",32,1,""],[5323355,"Hamiyeh, Hassan","M",32,1,""],[5307694,"Hammouch, Ahmad","M",32,1,""],[5314348,"Hammoud, Abdulrahman","M",22,1,""],[5324750,"Hammoud, Ali","M",17,1,""],[5314356,"Hammoud, Amro","M",15,0,""],[5327016,"Hammoud, Fadi","M",53,1,""],[5326605,"Hammoud, Fatima","F",9,1,""],[5300991,"Hammoud, Hussein","M",71,1,""],[5314364,"Hammoud, Khaled","M",22,1,""],[5329434,"Hammoud, Mohammad","M",22,1,""],[5329973,"Hammoud, Mohammad Ali","M",21,1,""],[5301009,"Hammoud, Nadim","M",35,1,""],[5311799,"Hammoud, Rawad","M",43,1,""],[5310334,"Hammoud, Rim","M",18,1,""],[5314372,"Hammoud, Sami","M",16,1,""],[5321000,"Hammoud, Serena","F",7,1,""],[5314380,"Hammoud, Wael","M",25,1,""],[5331102,"Hammoudeh, Yasser","M",14,1,""],[5333733,"Hammoudeh, Yasser","M",26,1,""],[5316979,"Hammoudi, Adam","M",20,1,""],[5324432,"Hamoud, Ali","M",17,1,""],[5308313,"Hamoud, Ismaiel","M",31,1,""],[5312108,"Hamoud, Wael","M",25,1,""],[5307996,"Hamouda, Mohamad","M",26,1,""],[5309387,"Hamoushi, Mohamad Ali","M",31,0,""],[5304580,"Hamza, Abdallah","M",56,1,""],[5322871,"Hamza, Ali","M",27,1,""],[5322880,"Hamza, Ghassan","M",8,1,""],[5318980,"Hamza, Jad","M",41,1,""],[5305772,"Hamza, Khaled","M",50,1,""],[5304105,"Hamza, Salah","M",54,1,""],[5328772,"Hamze, Adam","M",13,1,""],[5313880,"Hamze, Bassam Tarek","M",23,1,""],[5314399,"Hamzeh, Mohamad","M",42,1,""],[5320933,"Hamzi , Mohammad","M",42,1,""],[5325048,"Hankir, Adam","M",14,1,""],[5309174,"Hanna, Ibrahim","M",34,1,""],[5320488,"Hanna, John Raymond","M",16,1,""],[5320496,"Hanna, Kevin Claude","M",21,1,""],[5302510,"Hanna, Naji","M",65,1,""],[5325943,"Hannouch,Joseph","M",11,1,""],[5325951,"Hannouch,Roger","M",10,1,""],[5306876,"Hantro, Mohamad","M",76,1,""],[5330440,"Harajli, Haidar","M",26,1,""],[5309573,"Harakeh, Jihad","M",46,1,""],[5326613,"Harakeh, Jihad","M",35,1,""],[5319498,"Harb , Divina","F",27,1,""],[5332052,"Harb Abdulrahman Mohammad","M",14,1,""],[5312892,"Harb Mohamad,Nora","F",19,1,""],[5305896,"Harb, Gregory","M",35,0,""],[5316472,"Harb, Hussein","M",27,1,""],[5332265,"Harb, Hussein Gabriel","M",10,1,""],[5310512,"Harb, Jad Jihad","M",27,0,""],[5332478,"Harb, Mohamad","M",52,1,""],[5332273,"Harb, Mohammad","M",14,1,""],[5312639,"Harb,Lamar","F",16,1,""],[5320356,"Harboyan , Gari-Connor","M",17,1,""],[5320372,"Harboyan , Kaleh-Troy","M",16,1,""],[5320364,"Harboyan , Veh-Crist","M",16,1,""],[5320119,"Harika, Karl","M",23,1,""],[5317118,"Harika, Marc","M",25,1,""],[5322073,"Harika, Rodolph","M",19,1,""],[5305640,"Hariri, Abdurrahman Bilal","M",27,1,""],[5309786,"Hariri, Ahmad","M",19,1,""],[5317703,"Hariri, Ahmad Ibrahim","M",20,1,""],[5309310,"Hariri, Hadi Moustafa","M",38,0,""],[5309883,"Hariri, Kareem","M",17,1,""],[5305632,"Hariri, Muhammad Bilal","M",26,1,""],[5317320,"Hariri, Mustafa","M",39,1,""],[5324440,"Hariri, Rasheed Hassn","M",69,1,""],[5309301,"Hariri-Awada, Chadi","M",45,0,""],[5320895,"Harissa, Hussein","M",23,1,""],[5314771,"Harmoush, Tarek","M",55,1,""],[5315174,"Hasan Jad","M",20,0,""],[5320780,"Hasbini , Maher","M",15,1,""],[5307651,"Hashem, Ahmad","M",34,1,""],[5306337,"Hashem, Mohamad","M",24,1,""],[5309794,"Hashisho, Ragheed","M",21,1,""],[5326540,"Hassabo, Christopher","M",19,1,""],[5331633,"Hassan Chakroun","M",10,1,""],[5302706,"Hassan, Abdulatif","M",27,1,""],[5311535,"Hassan, Ahmad","M",14,1,""],[5322081,"Hassan, Ali Eidi","M",17,1,""],[5311527,"Hassan, Amir","M",13,1,""],[5306345,"Hassan, Haidar","M",21,1,""],[5322332,"Hassan, Mohamad","M",26,1,""],[5326214,"Hassan, Rami Nazih","M",20,1,""],[5324769,"Hassaniyeh, Roudy","M",21,1,""],[5307120,"Hassoun, Chafic","M",29,1,""],[5325056,"Hassoun, Rama","F",15,1,""],[5332591,"Hatahet, Abed","M",26,1,""],[5328640,"Hatoom, Karim","M",12,1,""],[9201106,"Hatoum, Ammar","M",58,1,""],[5325501,"Hatoum, Baha","M",35,1,""],[5319765,"Hatoum, Karim","M",17,1,""],[5318394,"Hatoum, Omar","M",16,1,""],[5326621,"Havati, Gabriel Setrag","M",18,1,""],[5327628,"Havatian, Gabriel","M",18,1,""],[5322898,"Havatian, Kapriel","M",18,1,""],[5330793,"Havatian, Vicky","F",14,1,""],[5314402,"Hawa, Jalal","M",20,1,""],[5304997,"Hawa, Rayan","M",24,1,""],[5314410,"Hawa, Slaiman","M",22,1,""],[5314429,"Hawa, Walid","M",21,1,""],[5321328,"Hawa, Ziad","M",28,1,""],[5324211,"Hawat,Jude","M",13,1,""],[5309336,"Hawi, Michel","M",43,1,""],[5305276,"Hawshar Ple, Walid","M",66,1,""],[5325064,"Hawshar, Mohamad","M",18,1,""],[5314437,"Haydari, Ali","M",32,1,""],[5323789,"Hayek, Ali","M",17,0,""],[5314984,"Hayek, Antoine","M",69,1,""],[5331480,"Hayek, Hussein","M",16,1,""],[5328438,"Hayek, Karl","M",11,1,""],[5332702,"Hayek, Maeve","F",15,1,""],[5323797,"Hayek, Michel","M",17,1,""],[5312116,"Hayek, Oumar","M",56,1,""],[5316170,"Hayek, Rony","M",26,1,""],[5318408,"Hayek, Toufic","M",29,1,""],[5328446,"Hayek, Wiliam","M",12,1,""],[5313740,"Haykal , Rodolf Roland","M",26,1,""],[5331404,"Hazim Hamad Oussama","M",11,1,""],[5325650,"Hazimeh, Ahmad Ali","M",20,1,""],[5328012,"Hbayter, Georgios","M",17,1,""],[5321662,"Heleiwa, Sacha","M",16,1,""],[5316189,"Helou, Jad Bechara","M",35,0,""],[5326630,"Hennawi, Adam","M",14,1,""],[5314445,"Hergelian, Raffi","M",23,1,""],[5334020,"Hiar, Noa","M",10,1,""],[5303028,"Hidari, Walid","M",39,0,""],[5332575,"Hijazi Hussein Bassel","M",12,1,""],[5334144,"Hijazi Majed","M",42,1,""],[5334080,"Hijazi Youssef","M",13,1,""],[5332850,"Hijazi, Abdulrahman Khalid","M",18,1,""],[5304598,"Hijazi, Asma","F",56,1,""],[5316480,"Hijazi, Hadi","M",31,1,""],[5326150,"Hijazi, Hadi","M",17,1,""],[5316766,"Hijazi, Issam Maher","M",56,1,""],[5304601,"Hijazi, Jawad","M",56,1,""],[5316499,"Hijazi, Kassem","M",17,1,""],[5316197,"Hijazi, Kassem Rabih","M",17,1,""],[5311470,"Hijazi, Majd","M",14,1,""],[5316502,"Hijazi, Mohammad","M",30,1,""],[5303338,"Hijazi, Mohammed M","M",54,0,""],[5309417,"Hijazi, Osama","M",54,1,""],[5312124,"Hijazi, Yara","F",16,1,""],[5331838,"Hilal Wafic Ribal","M",26,1,""],[5328020,"Hilal, Ali Alaa Dien","M",18,1,""],[5324491,"Hindi, Ali","M",25,0,""],[5317436,"Hitti, Nady","M",15,1,""],[5321670,"Hmaid, Nemer","M",28,1,""],[5309107,"Hmedeh, Ali","M",54,1,""],[5306892,"Hmouda, Mohamad","M",76,1,""],[5306906,"Hmouda, Tarek","M",20,1,""],[5329442,"Hnieneh, Lama","F",15,1,""],[5319773,"Hoblos, Abdul Rahim","M",19,1,""],[5332010,"Hocheimi, Mohamad Osama","M",14,1,""],[5309808,"Honieneh, Amal","F",18,1,""],[5311373,"Hoteit, Ahmad","M",18,1,""],[5311381,"Hoteit, Aya","F",16,1,""],[5332710,"Houchaimi, Hamza","M",13,1,""],[5322901,"Houcheimi, Mohamad","M",14,1,""],[5331358,"Houcheimi, Oussama","M",54,1,""],[5332125,"Houjeiri, Abdo Ahmad Mohamad","M",21,1,""],[5306094,"Houjeyri, Sami","M",40,1,""],[5327792,"Houmani, Ali","M",22,1,""],[5313333,"Houmani, Mohamad Sadek","M",25,1,""],[5300410,"Houmsi, Ghassan","M",56,0,""],[5303672,"Houry, Mazen M","M",40,1,""],[5309115,"Housseiny, Ali","M",26,1,""],[5305560,"Hovagumian, Ara","M",56,1,""],[5300584,"Hovnanian, Serge","M",44,0,""],[5320500,"Hreiche, Hasan","M",26,1,""],[5332133,"Hussein, Damen","M",18,1,""],[5302242,"Hussein, Mohamad Ali","M",39,1,""],[5330696,"Hussein, Mohammad","M",16,1,""],[5303141,"Iaali, Abdelrahman","M",32,1,""],[5325510,"Ibrahim, Adonis","M",22,1,""],[5328187,"Ibrahim, Alaa","F",15,1,""],[5312850,"Ibrahim, Issam","M",23,1,""],[5322910,"Ibrahim, Mouhamad Rabih","M",14,1,""],[5321336,"Ibrahim, Nicolas","M",25,1,""],[5322928,"Ibrahim, Rabih Ibrahim","M",10,1,""],[5327300,"Ibrahim, Wael","M",35,1,""],[5318998,"Ibrahim, Yara","F",13,1,""],[5311640,"Ibrahim, Yorgo","M",20,1,""],[5328179,"Ibrahim, Youssif","M",10,1,""],[5317711,"Ibrahim, Zouhair","M",37,1,""],[5327504,"Idris, Nader","M",11,1,""],[5319536,"Imad , Amir","M",10,1,""],[5306353,"Imad, Elia","M",33,1,""],[5325811,"Imad, Roy","M",21,1,""],[5321344,"Irani, Hassan","M",17,1,""],[5309816,"Isawi, Adnan","M",18,1,""],[5315395,"Iskandar Al Hachem , Alexy","M",24,1,""],[5333113,"Iskandar Nasri","M",26,1,""],[5330521,"Iskandarani,Mahmoud","M",38,1,""],[5311390,"Iskandarian, Edward","M",20,1,""],[5312906,"Ismaeil Khalil , Yassine","M",45,1,""],[5324459,"Ismael, Ali Rida","M",22,1,""],[5329450,"Ismail, Adel","M",13,1,""],[5331722,"Ismail, Adel","M",12,1,""],[5319374,"Ismail, Mohamad","M",16,1,""],[5304113,"Issa, Ahmad","M",56,1,""],[5316200,"Issa, Alaa Ali","M",17,1,""],[5313449,"Issa, Ali","M",21,1,""],[5315867,"Issa, Charbel","M",21,1,""],[5328268,"Issa, Ibrahim","M",14,1,""],[5314453,"Issa, Merie","F",64,1,""],[5306361,"Issa, Mohamad","M",56,1,""],[5315875,"Issa, Mounir","M",60,0,""],[5325072,"Issa, Noah Joseph","M",12,1,""],[5308437,"Issa, Omar","M",30,1,""],[5333954,"Issam fehmi","M",67,1,""],[5315409,"Itani, Abed Al Rahman Jana","M",23,1,""],[5321689,"Itani, Ahmad","M",10,1,""],[5324645,"Itani, Ahmad","M",20,1,""],[5325080,"Itani, Ahmd Youssef","M",20,1,""],[5319005,"Itani, Dany","M",17,1,""],[5309190,"Itani, Khaled","M",50,1,""],[5309140,"Itani, Mohamad","M",51,1,""],[5321697,"Itani, Mohamad","M",50,1,""],[5324653,"Itani, Mostapha","M",14,1,""],[5310601,"Itani, Omar","M",22,0,""],[5325692,"Itani, Omar Khodor","M",24,0,""],[5307724,"Itani, Rayan","F",40,1,""],[5319781,"Itawi, Ali","M",26,1,""],[5309280,"Itawi, Ali Hassan","M",26,0,""],[5309395,"Itawi, Mohamad","M",26,1,""],[5334152,"Iyad Yehia","M",16,1,""],[5331048,"Izrafil, Jad","M",11,1,""],[5310342,"Izzedine, Jad","M",40,1,""],[5307660,"Jaafar, Ali","M",29,0,""],[5327636,"Jaafar, Jamal","M",19,1,""],[5329647,"Jaafar, Tarek","M",30,1,""],[5319552,"Jabak,Hadi","M",25,1,""],[5334039,"Jabbour, Gerdil","M",50,1,""],[5333539,"Jabbouri, Ghadi","M",12,1,""],[5320402,"Jaber , Mohammad","M",8,1,""],[5306370,"Jaber, Ahmad","M",56,1,""],[5325099,"Jaber, Jad","M",21,1,""],[5325331,"Jaber, Joury","F",8,1,""],[5322936,"Jaber, Karim","M",21,1,""],[5306388,"Jaber, Mahmoud","M",27,1,""],[5323991,"Jaber, Majd","M",17,1,""],[5317720,"Jaber, Mila","F",12,1,""],[5311659,"Jaber, Mohammad Khalil","M",28,1,""],[5325900,"Jaber,Samih","M",40,1,""],[5320330,"Jabr , Mahmoud","M",27,1,""],[5315417,"Jabr, Issam Ahmad","M",30,1,""],[5322944,"Jabr, Leen","F",15,1,""],[5300800,"Jalloul, Maya","F",36,0,"WFM"],[5313309,"Jamal Eddine, Elena","F",24,1,""],[5307473,"Jamil, Hassan","M",44,1,""],[5323363,"Jammal, Abdul Aziz","M",19,1,""],[5304121,"Janbein, Abdallah","M",56,1,""],[5318416,"Janbein, Ali Ibrahim","M",21,1,""],[5312132,"Janbein, Fatima Ibrahim","F",24,1,""],[5312140,"Janbein, Fatima Nasser","F",25,1,""],[5318424,"Janbein, Hassan","M",61,1,""],[5312159,"Janbein, Mariam","F",24,1,""],[5304610,"Janbein, Mohamad","M",56,1,""],[5304130,"Janbein, Omar","M",56,1,""],[5332362,"Janbein, Ranim Wassim","F",15,1,""],[5315425,"Jarah, Jihad Jad","M",23,1,""],[5315433,"Jarah, Mohamad Taha","M",22,1,""],[5315654,"Jaramani Malaeb, Hilal","M",56,1,""],[5300436,"Jardak, Hadi","M",65,0,""],[5310830,"Jardali, Achraf","M",31,0,""],[5305357,"Jarekji, Mohamad","M",32,1,""],[5330858,"Jari, Jad","M",35,1,""],[5316510,"Jarmaki, Marwa","F",37,1,""],[5315204,"Jarrah, Jad","M",23,1,""],[5315190,"Jarrah, Taha","M",22,1,""],[5320909,"Jawhar, Hadi","M",39,1,""],[5302137,"Jawhar, Oussama","M",52,1,""],[5308500,"Jbara,Roni","M",64,1,""],[5313902,"Jbeily, Elias Joseph","M",27,1,""],[5300193,"Jebejian, Vahe","M",33,0,""],[5321514,"Jeitani,Wahib","M",36,1,""],[5328780,"Jeradeh, Lyn","M",20,1,""],[5328691,"Jeradeh, Rym","F",20,1,""],[5328667,"Jodeye, Amir","M",13,1,""],[5319129,"Joelle Azzam","F",11,1,""],[5319790,"Jomaa, Ali","M",24,1,""],[5331188,"Jomaa, Amir","M",14,1,""],[5320755,"Jomaa, Daniel","M",31,1,""],[5305004,"Jomaa, Ghassan","M",66,1,""],[5314461,"Jomaa, Kassem","M",22,1,""],[5314470,"Jomaa, Rafik","M",46,1,""],[5310016,"Jomaa, Yasser","M",55,1,""],[5311748,"Joubaili, Haroun","M",15,1,""],[5331196,"Joudieh, Amir","M",13,1,""],[5328993,"Joumaa, Amir","M",14,1,""],[5330874,"Joumaa, Amir","M",26,1,""],[5302609,"Jouni, Hassan","M",56,0,""],[5326648,"Jouni, Mohamad Ali","M",15,1,""],[5309824,"Jrad, Nosayba","F",22,1,""],[5324505,"Jrade, Ali","M",23,1,""],[5318815,"KHoudor,Hassan","M",25,1,""],[5329000,"Kaafarani, Abbas","M",14,1,""],[5329019,"Kaafarani, Ali","M",18,1,""],[5329027,"Kaafarani, Jad","M",10,1,""],[5329035,"Kaafarani, Majd","M",11,1,""],[5331730,"Kaafarani, Mohamad Jawad","M",8,1,""],[5329469,"Kaafarani, Nour","F",13,1,""],[5329043,"Kaafarani, Nour Mohamad","M",13,1,""],[5329051,"Kaafarani, Rayan","M",11,1,""],[5329060,"Kaafarani, Sari","F",8,1,""],[5306604,"Kaakati, Wael","M",50,1,""],[5307147,"Kaakati, Youssef","M",19,1,""],[5319803,"Kaakour, Rami","M",22,1,""],[5333180,"Kaawar, Ali Akbar Mahdi","M",14,1,""],[5333199,"Kaawar, Rayan Mahdi","M",17,1,""],[5329477,"Kabalan, Ali","M",18,1,""],[5317231,"Kabalan, Hasan","M",26,1,""],[5302692,"Kabalan, Mohamad","M",23,0,""],[5310610,"Kabbara, Ahmad","M",81,1,""],[5328454,"Kabche, Marc David","M",16,1,""],[5316219,"Kachaamy, Andrew Joseph","M",28,1,""],[5315662,"Kachalan, Hassan","M",17,1,""],[5329078,"Kadamani, Jawad","M",43,1,""],[5310440,"Kaddah, Hassan","M",29,0,""],[5304628,"Kafanian, Narsis","M",56,1,""],[5311250,"Kahwaji, Belicia","M",14,1,""],[5316529,"Kain, Toufic","M",45,1,""],[5332982,"Kalemkeriar, Varant Antranik","M",25,1,""],[5316227,"Kalfayan, Andre","M",58,1,""],[5321077,"Kalfayan,Garo","M",25,0,""],[5310350,"Kalouche, Ibrahim Benjamin","M",17,1,""],[5310369,"Kalouche, Samuel","M",15,0,""],[5303699,"Kaloust, Giorgio","M",24,1,""],[5307260,"Kaloust, Guy","M",18,1,""],[5333946,"Kamar Ibrahim","M",41,1,""],[5304814,"Kamar, Mohamad","M",33,0,""],[5331498,"Kamar, Mohamad Ali","M",13,1,""],[5333547,"Kamar, Mohammad Ali","M",13,1,""],[5317738,"Kamar, Saleh Mohamad","M",28,1,""],[5333911,"Kamar, Warde","F",10,1,""],[5325528,"Kanaan, Haidar","M",13,1,""],[5306132,"Kanawati, Wadad Ghazi","F",42,1,""],[5327008,"Kanberian, Jason","M",14,1,""],[5322430,"Kanj,Ramez","M",24,0,""],[5313325,"Kanjo Bacha, Nour","F",26,1,""],[5330378,"Kanjo,Mostafa","M",33,1,""],[5319501,"Kanso , Nayef","M",18,1,""],[5323371,"Kanso, Nur","F",20,1,""],[5327318,"Karaali, Hadi","M",28,1,""],[5318734,"Karabet, Habib","M",50,1,""],[5307562,"Karadjian, Lory","F",22,1,""],[5317444,"Karajian, Serj","M",28,1,""],[5322952,"Karakashian, Harout","M",22,1,""],[5333555,"Karaki, Ali","M",11,1,""],[5317002,"Karam, Carlo","M",18,0,""],[5314488,"Karam, Charbel","M",25,1,""],[5319811,"Karam, Christian","M",16,1,""],[5317746,"Karam, Elie","M",14,0,""],[5317754,"Karam, Nicolas","M",12,1,""],[5306590,"Karam, Peter","M",16,0,""],[5316235,"Karam, Philipe Dimitri","M",27,1,""],[5315166,"Karam, Raymond","M",19,0,""],[5314992,"Karam,Mark","M",19,1,""],[5327326,"Karim, Bachir","M",19,1,""],[5310458,"Karim, Jukka Niemela","M",41,1,""],[5309581,"Karim, Mohamad Wehbe","M",33,1,""],[5326656,"Karkoubi, Aisha","F",18,1,""],[5324009,"Karout, Al Horr","M",12,1,""],[5324017,"Karout, Manessa","F",10,1,""],[5321875,"Kashlan, Hassan Anwar","M",17,1,""],[5307422,"Kashmar, ahmad","M",49,0,""],[5325102,"Kaspar, Patric","M",14,1,""],[5321700,"Kass, Abdallah","M",24,1,""],[5318432,"Kassaa, Karim","M",18,1,""],[5318165,"Kassaa, Karim Hamdi","M",18,1,""],[5309085,"Kassar, Bashar","M",20,1,""],[5310954,"Kassar, Mohamad Ahmad","M",31,1,""],[5307392,"Kassar, Paul","M",58,1,""],[5305578,"Kassar, Pierre","M",58,1,""],[5303966,"Kassas, Mohamad","M",56,0,""],[5330947,"Kassem, Ahmad","M",19,1,""],[5322960,"Kassem, Ahmad Abbas","M",26,1,""],[5304148,"Kassem, Ali","M",56,1,""],[5331366,"Kassem, Ali Reda","M",19,1,""],[5316537,"Kassir, Haitham","M",48,1,""],[5308836,"Kassir, Moustafa","M",25,1,""],[5300150,"Kassis, Antoine","M",54,1,"FM"],[5334047,"Kassouha, Jobert","M",11,1,""],[5304636,"Kastanian, Hratch","M",56,1,""],[5300215,"Katerji, Migri","F",34,1,""],[5304393,"Katerjian, Vladimir","M",26,0,""],[5311268,"Katibah, Walid","M",15,1,""],[10302573,"Kattan, Ghada","F",55,0,""],[5305780,"Kattan, Khaled","M",66,1,""],[5305144,"Kattan, Saeb Maher","M",28,1,""],[5319544,"Kawam , Ghadi","M",11,1,""],[5311756,"Kayello, Ahmad","M",18,1,""],[5311055,"Kayello, Maha","F",23,1,""],[5315883,"Kayem, Assi","M",37,1,""],[11500140,"Kayle, Charles","M",62,0,""],[5303648,"Kaymekmian, Houchik","F",29,1,""],[5310628,"Kaypekian, Ignace","M",31,0,""],[5311667,"Kayssi, Karim","M",27,1,""],[5322979,"Kazan, Christian","M",12,1,""],[5322987,"Kazan, Elie","M",13,1,""],[5322995,"Kazan, Jemika","F",24,1,""],[5312442,"Kazandjian,Aram","M",44,1,""],[5310024,"Kazazian, Hagop","M",37,1,""],[5329086,"Kazzi, Karl Georges","M",24,1,""],[5316243,"Kchouri, Adam","M",21,1,""],[5315000,"Kchouri, Karim","M",56,1,""],[5328799,"Keirouz, Kabalan","M",27,1,""],[5302943,"Kelebozian, Hrag","M",28,0,""],[5302951,"Kelebozian, Narod","F",23,1,""],[5314496,"Kendirjian, Aram","M",44,1,""],[5330807,"Kendirjian, Leem","F",16,1,""],[5334241,"Kerdy Tarek","M",35,1,""],[5310377,"Kevorkian, Aline","M",19,1,""],[5305926,"Kfoury, Rashid","M",46,1,""],[5303222,"Kfoury, Raymond","M",61,1,""],[5305985,"Khachan, Simon","M",59,0,""],[5329981,"Khaddaj, Michael","M",11,1,""],[5317762,"Khaddaj, Yamen Ameen","M",29,1,""],[5303885,"Khadra, Michael","M",47,0,""],[5329485,"Khadra, Yara","F",15,1,""],[5323002,"Khair Eddine, Issa","M",46,1,""],[5323010,"Khair Eddine, Mohamad","M",16,1,""],[5323029,"Khair Eddine, Wadih","M",14,1,""],[5305365,"Khair, Yehya","M",66,1,""],[5318742,"Khairallah, Antoine","M",63,1,""],[5302056,"Khairallah, Elias","M",66,1,""],[4628250,"Khairallah, Faisal","M",51,1,"FM"],[5318750,"Khairallah, Joanna","M",26,1,""],[5303001,"Khairallah, Joseph","M",31,1,""],[5318769,"Khairallah, Marc","M",18,1,""],[5302994,"Khairallah, Ralph","M",28,0,""],[5314500,"Khairiddine, Issa","M",46,1,""],[5314518,"Khairiddine, Zakariya","M",34,1,""],[5333342,"Khalaf Ali","M",22,1,""],[5318440,"Khalaf, Nicolas","M",32,1,""],[5329493,"Khaled, Talal","M",13,1,""],[5329507,"Khaled, Tamer","M",12,1,""],[5329515,"Khalefeh, Ali","M",12,1,""],[5329523,"Khalefeh, Hawraa","F",14,1,""],[5317770,"Khalidi, Abdullah","M",14,1,""],[5317789,"Khalidi, Youssif","M",11,1,""],[5333350,"Khalife Youssef","M",52,1,""],[5332486,"Khalife, Majd","M",11,1,""],[5330700,"Khalife, Steven","M",26,1,""],[5332605,"Khalife, Tym Adam","M",7,1,""],[5329094,"Khalifeh, Ali Nasser","M",12,1,""],[5329108,"Khalifeh, Hawraa Nasser","M",14,1,""],[5311063,"Khalifeh, Khodor","M",31,1,""],[5331501,"Khalifeh, Majd","M",11,1,""],[5331510,"Khalifeh, Mohammad","M",14,1,""],[5313368,"Khalil, Abbass","M",29,1,""],[5323380,"Khalil, Ali","M",18,1,""],[5326664,"Khalil, Ali","M",11,1,""],[5323037,"Khalil, Ali Dib","M",18,1,""],[5308658,"Khalil, Fawaz","M",60,1,""],[5304644,"Khalil, Habib","M",54,1,""],[5333318,"Khalil, Kevin","M",15,1,""],[5328039,"Khalil, Lorentz Philipe","M",16,1,""],[5311276,"Khalil, Nour","F",13,1,""],[5330815,"Khalil, Roukaya","F",7,1,""],[5304520,"Khalili, Moustafa","M",34,1,""],[5303656,"Khallouf, Abdallah","M",31,0,""],[5333563,"Khanafer, Hawraa","F",14,1,""],[5333571,"Khanafer, Zahraa","F",14,1,""],[5304350,"Khanjian, Samir","M",62,0,""],[5325340,"Khansa, Malika","F",11,1,""],[5321883,"Khansa, Samir","M",24,1,""],[5326060,"Kharrat, Albashir","M",17,1,""],[5326079,"Kharrat, Alnasser","M",11,1,""],[5306396,"Khatchadourian, Chris","M",38,1,""],[5309832,"Khatib, Jad","M",23,1,""],[5303974,"Khatib, Mohamad","M",56,0,""],[5317797,"Khawli, Nicolas","M",21,1,""],[5325706,"Khayat, Adrian","M",13,1,""],[5327806,"Khayat, Ryan","M",19,1,""],[5319820,"Khayyat, Zeinab","F",16,1,""],[5333369,"Khazaal Daniel","M",30,1,""],[5314526,"Khazaal, Houssam","M",25,1,""],[5312450,"Khazen,Halim","M",40,1,""],[5318459,"Khazzaka, Lynn","F",18,1,""],[5318467,"Khazzaka, Ziad","M",46,1,""],[5300029,"Khechen, Nabil E","M",78,1,"IM"],[5327334,"Kheir, Mostapha","M",20,1,""],[5318475,"Kheirallah, Abdullah","M",27,1,""],[5330203,"Khishen, Hussein","M",17,1,""],[5327342,"Khochkhoch, Walid","M",26,1,""],[5306914,"Khoder, Akram","M",21,1,"IM"],[5305900,"Khoder, Mazen","M",52,0,""],[5332494,"Khoder, Rida","M",51,1,""],[5308984,"Khodor, Rim","F",19,1,""],[5332508,"Khodr, Daniel","M",9,1,""],[5309352,"Khouji, Mohamad","M",26,1,""],[5317339,"Khoumassi, Ghassan","M",26,1,""],[5315018,"Khouri, Georges Habib","M",21,1,""],[5315026,"Khouri, Georges Raed","M",19,1,""],[5315034,"Khouri, Georges Sarmand","M",15,1,""],[5328586,"Khoury, Chakib","M",17,1,""],[5303230,"Khoury, Elias","M",54,1,""],[5328047,"Khoury, Gaby","M",44,1,""],[5320143,"Khoury, Joe","M",18,1,""],[5322090,"Khoury, Joeeh","M",30,1,""],[5310091,"Khoury, Johnny","M",42,1,""],[5309590,"Khoury, Majd","M",25,1,""],[5331285,"Khoury, Serge","M",14,1,""],[5327814,"Khoury, Zahi","M",18,1,""],[5308739,"Khoury,Pierre","M",52,1,""],[5317800,"Khraizat, Ali","M",20,1,""],[5326672,"Khreis, Ali Rida","M",14,1,""],[5324084,"Kian,Baroud","M",10,1,""],[5325820,"Kibbi, Mohammad","M",28,1,""],[5318777,"Kikano, Paul","M",64,1,""],[5311730,"Kilani, Amal","F",16,1,""],[5306400,"Kilani, Mohamad Yaout","M",20,1,""],[5305284,"Kilani, Nawal","F",24,1,""],[5310520,"Kiwan, Shadi","M",22,1,""],[5324661,"Kleilat, Mourad","M",23,1,""],[5308232,"Kobar, Karam","M",51,1,""],[5319013,"Kobeisi, Abdel Hadi","M",18,1,""],[5319021,"Kobeisi, Karim","M",17,1,""],[5320682,"Kobeissey , Ali-Elasghar","M",13,1,""],[5320666,"Kobeissey , Daniel","M",15,1,""],[5320623,"Kobeissey , Jessica","F",9,1,""],[5302250,"Kobeissi, Daniel","M",33,0,""],[5304652,"Kobrosli, Mohamad","M",24,1,""],[5315670,"Korani, Mohamad","M",22,1,""],[5315891,"Kordahy, Elie","M",26,1,""],[5310105,"Kordi, Moustafa","M",36,1,""],[5316677,"Kourani, Mohammad","M",22,0,""],[5323045,"Kourani, Moustapha","M",22,1,""],[5316251,"Koussaifi, Marc Firas","M",20,1,""],[5313341,"Kouyoumjian , Charbel Christopher","M",16,1,""],[5309603,"Krayem, Mohamad","M",46,1,""],[5306639,"Kraytem, Ezzat","M",61,1,""],[5310113,"Kreidy, Elias","M",29,1,""],[5312965,"Krikorian Garbis, Gaelle","F",24,1,""],[5306027,"Krikorian, Jessy","F",24,1,""],[5306035,"Krikorian, Patil","F",21,1,""],[5319650,"Krisht,Ali","M",49,1,""],[5308003,"Kseir, Moustafa","M",25,1,""],[5304822,"Kurdi, Mustafa","M",21,1,""],[5312469,"Kurdi,Bilal","M",27,1,""],[5323398,"Kwayder, Omar","M",20,1,""],[5333580,"Kyriakos, Ashley","F",14,1,""],[5333326,"Kyrillos, Joseph","M",15,1,""],[5312167,"Laban, Waffik","M",56,1,""],[5310962,"Labban, Wafic","M",31,1,""],[5318483,"Laham, Antoun","M",13,1,""],[5302960,"Lakhoyan, Hrag","M",22,0,""],[5316685,"Lakis, Kamal Georges","M",37,1,""],[5332958,"Lakkis, Ali","M",18,1,""],[5319242,"Lea Saadeddine","F",10,1,""],[5314534,"Lebreton, Cyril","M",26,1,""],[5330882,"Lezzeik, Hady","M",14,1,""],[5304830,"Licha, Paul","M",34,1,""],[5300037,"Loheac Ammoun, Frank","M",76,0,"FM"],[5319340,"Lotfi, Naji","M",12,1,""],[5307325,"Louak, Milad","M",28,1,""],[5315042,"Louis, Sarmad Nady","M",20,1,""],[5321352,"Loutfi, Dyna","M",35,1,""],[5313015,"Lteif, Gabriella","F",15,1,""],[5310121,"Lteif, Hicham","M",53,1,""],[5325110,"Lutfalah, Elias Baradei","M",26,1,""],[5306418,"Maadarani, Omar","M",56,1,""],[5318491,"Maalouf, Carlos","M",15,1,""],[5317126,"Maalouf, Charbel","M",18,1,""],[5312175,"Maarabouni, Alaa","M",33,1,""],[5305160,"Maarabouni, Mohammad Amin Salem","M",19,1,""],[5305152,"Maarabouni, Zakarya Salem","M",22,1,""],[5306922,"Maasarani, Ahmad","M",24,1,""],[5307066,"Maasarani, Karim","M",21,0,""],[5300681,"Maasarani, Mahmoud","M",58,1,""],[5304849,"Madani, Nicolas","M",33,0,""],[5318173,"Maddah, Julian","M",17,1,""],[5324513,"Mahboub, Wael","M",41,1,""],[5315441,"Mahdi, Ahmad Firas","M",51,0,""],[5314739,"Mahdi, Issa","M",24,0,""],[5309360,"Mahdi, Taleb","M",56,1,""],[5325129,"Mahdi, Yousef Mohamad","M",13,1,""],[5325986,"Mahdi,Mahdi","M",42,1,""],[5319277,"Mahmoud Jomaa","M",12,1,""],[5305012,"Maita, Abdallah","M",26,1,""],[5307910,"Maita, Houssain","M",26,1,""],[5305799,"Maita, Salim","M",66,1,""],[5304660,"Maita, Sleiman","M",56,1,""],[5317452,"Majd , Rizk","M",23,0,""],[5331790,"Majdalani, Sari","M",13,1,""],[5307627,"Majied, Amer","M",38,0,""],[5314542,"Majzoub, Firas","M",23,1,""],[5327350,"Majzoub, Samer","M",18,1,""],[5300819,"Makhlouf, Youmna","F",41,0,"WFM"],[5325137,"Makhlouta, Georgio","M",12,1,""],[5312957,"Makhoulian Bedros,Asso Sako","M",34,1,""],[5316693,"Makki, Sara","F",40,1,""],[5317347,"Makki, Sarah","F",40,1,""],[5330459,"Makkouk, Tarek","M",17,1,""],[5323800,"Makmouk, Mahmoud","M",30,1,""],[5332028,"Maksoud, Bahaa","M",44,1,""],[5319560,"Maksoud, Shadi","M",9,1,""],[5325536,"Malaeb, Enai Hicham","M",21,1,""],[5311071,"Malaeb, Jamal","M",42,1,""],[5317819,"Malaeb, Nabih","M",73,1,""],[5312868,"Malaeb, Osmat","M",20,1,""],[5317827,"Malaeb, Rabih","M",39,1,""],[5315689,"Malaeb, Ramzi","M",38,1,""],[5306426,"Malaeb, Rawad","M",43,1,""],[5317835,"Malaeb, Salim Fadaa","M",22,1,""],[5321719,"Malah, Mahdi","M",56,1,""],[5316260,"Malek, Hibri","M",16,1,""],[5319030,"Malek, Shuaib","M",17,1,""],[5308674,"Mallab, Jamal","M",42,1,""],[5330467,"Mallah, Amir","M",15,1,""],[5318670,"Mallah, Noureddine","M",33,1,""],[5325358,"Mallat, Luna","F",18,1,""],[5315450,"Malouk, Mahmoud","M",28,1,""],[5307813,"Manjikian, Dikran","M",36,1,""],[5316545,"Mannaa, Hussein","M",40,1,""],[5330408,"Manoukian,Garbis","M",33,1,""],[5312825,"Mansour Youssef ,Habib","M",19,1,""],[5310636,"Mansour, Halim","M",27,1,""],[5310130,"Mansour, Hassan","M",56,1,""],[5334055,"Mansour, Mohamad","M",13,1,""],[5314550,"Mansour, Mohammad","M",25,1,""],[5325838,"Mansour, Naya","F",16,1,""],[5326680,"Mansour, Raed","M",18,1,""],[5329990,"Mansour, Sam","M",13,1,""],[5308518,"Maolawi, Samer","M",52,1,""],[5308623,"Marabani,Rabih","M",49,1,""],[5310385,"Marachli, Mohamad Taleb","M",71,1,""],[5315697,"Mardikian, Antranik Marc","M",14,1,""],[5315700,"Mardikian, Antranik Mardig","M",17,1,""],[5318181,"Mardikian, Antranik Maria","F",15,1,""],[5317843,"Mardini, Leticia","F",16,1,""],[5313821,"Mardiros , Gabriel Theodoulos","M",20,1,""],[5331374,"Mardirossian, Klag","M",20,1,""],[5321727,"Margi, Sadek","M",48,1,""],[5321360,"Marji, Mahdi","M",48,1,""],[5321379,"Marji, Sadek","M",20,1,""],[5326699,"Marjy, Mahdi","M",9,1,""],[5326702,"Marjy, Mohammad","M",16,1,""],[5331200,"Markarian, Khatchig","M",27,1,""],[5319641,"Maroun,Andrew","M",24,0,""],[5312183,"Marzouk, Iyad","M",22,1,""],[5331293,"Mashmoushi, Mohamad","M",13,1,""],[5331307,"Mashmoushi, Omar","M",10,1,""],[5317851,"Masr, Maher Akram","M",33,1,""],[5333598,"Masri, Adnan","M",14,1,""],[5324670,"Masri, Ali","M",15,1,""],[5318904,"Masri, Ali Rida","M",15,1,""],[5326710,"Masri, Ali Rida Imad","M",15,1,""],[5320151,"Masri, Hasanein","M",34,1,""],[5304296,"Masri, Luciana","F",50,1,""],[5319048,"Masri, Mohamad","M",14,1,""],[5324025,"Masri, Mohammad","M",16,1,""],[5312515,"Masri,Ahmad Mohamad Fouad","M",45,1,""],[5321735,"Massoud, Jad","M",20,1,""],[5318505,"Massry, Layth Hussein","M",11,1,""],[5333229,"Matar, Geoffroy","M",38,1,""],[5316278,"Matar, Tony Elias","M",37,1,""],[5301572,"Matta, Dany","M",51,0,""],[5314569,"Matta, Farah","F",32,1,""],[5321069,"Matta,Etienne","M",23,0,""],[5317860,"Mattar, Amer Menem","M",26,1,""],[5321387,"Mattar, Mia","M",19,1,""],[5315050,"Mattar, Nassem Taan","M",16,1,""],[5315905,"Mawad, Pierre","M",32,1,""],[5316553,"Mawed, Amani","M",40,1,""],[5312191,"Mawla, Hadi Hussein","M",56,1,""],[5305292,"Mayas, Walid","M",64,1,""],[5323053,"Mazahem, Fatima","F",13,1,""],[5328462,"Mazbouh, Bassam","M",57,1,""],[5306434,"Mazbouh, Thaer","M",64,1,""],[5332141,"Mazloum, Adnan","M",17,1,""],[5332729,"Mazloum, Fadlallah","M",28,1,""],[5323401,"McHeik, Mohammad","M",24,1,""],[5307333,"Medawar, Jad","M",44,1,""],[5332150,"Medlej, Houssein Ali","M",21,1,""],[5304300,"Megarbane, Julien","M",28,0,""],[5323061,"Mehaideli, Hadi Hassan","M",10,1,""],[5333814,"Mehydine Zaid","M",21,1,""],[5328470,"Mekari, Tony","M",10,1,""],[5334063,"Meneim, Mariam","F",10,1,""],[5325714,"Meouchy, Rudy","M",18,1,""],[5317355,"Merheb, Alfredo","M",21,1,""],[5317134,"Merheb, Georgio","M",18,1,""],[5326109,"Merhi, Maella","F",8,1,""],[5313805,"Merhi, Naim Marvin","M",12,1,""],[5334217,"Merhi, Sadin Mohammad","M",12,1,""],[5319510,"Merza , Rami","M",25,1,""],[5307554,"Meselmani, Clara","F",18,1,""],[5307546,"Meslmani, Hadi","M",24,1,""],[5304156,"Mesrobian, Hagop","M",56,1,""],[5325145,"Mhamad, Metlej","M",23,1,""],[5316871,"Mhanna Jean","M",13,0,""],[5325846,"Mhanna, Joefree","M",33,1,""],[5304407,"Mhanna, Ramzi","M",26,1,""],[5321166,"Mikaelian, Avedis","M",18,1,""],[5301084,"Mikati, Hani","M",64,1,""],[5302528,"Mikati, Housam","M",30,1,""],[5301971,"Mikati, Omar","M",27,1,""],[5320160,"Mikayelian, Avo","M",18,1,""],[5323070,"Mikdad, Mohammad","M",32,1,""],[5314577,"Milhim, Elias","M",55,1,""],[5331110,"Mirhi, Milan","M",12,1,""],[5318513,"Mkahal, Maria Husssam","F",15,1,""],[5313660,"Mkahal, Raghid Ahmad","M",18,1,""],[5331013,"Mkarzel, Sharbel","M",23,1,""],[5305306,"Mnayar, Karim","M",35,1,""],[5324467,"Mneimneh, Mahmoud","M",16,1,""],[5310393,"Moadad, Rayan","M",30,1,""],[5327369,"Moarbes, Charbel","M",21,1,""],[5305098,"Mobarak, Luca Charles","M",17,1,""],[5305101,"Mobarak, Patrick Augustin","M",20,1,""],[5328802,"Moghabghab, Jad","M",27,1,""],[5318912,"Moghnieh, Ali","M",18,1,""],[5316286,"Moghnieh, Ali Ahmad","M",26,1,""],[5316561,"Moghnieh, Ali El Hadi","M",39,1,""],[5330211,"Moghnieh, Ali Hilal","M",15,1,""],[5313996,"Moghnieh, Baker Mohamad","M",36,1,""],[5332990,"Moghnieh, Fatmeh","F",16,1,""],[5316570,"Moghnieh, Hasan","M",30,1,""],[5324033,"Moghnieh, Hassan","M",34,0,""],[5307376,"Moghnieh, Hussein","M",44,1,""],[5318920,"Moghnieh, Hussein Khalil","M",39,1,""],[5314747,"Moghnieh, Mohamad","M",36,0,""],[5333008,"Moghnieh, Mohamad Ali","M",11,1,""],[5323819,"Moghniyyeh, Fatima","F",16,1,""],[5326729,"Moghniyyeh, Mohammad Ali","M",11,1,""],[5330009,"Moghrabi, Amir","M",32,1,""],[5309018,"Moghrabi, Omar","M",17,1,""],[5321395,"Mohamad Al Habib, Ghazal","M",20,1,""],[5331579,"Mohamad Ali Dia","M",11,1,""],[5331609,"Mohamad Ammouri","M",16,1,""],[5319170,"Mohamad El Jarmaki","M",32,1,""],[5319196,"Mohamad Ghaddar","M",13,1,""],[5331587,"Mohamad Mahdi Kawtharani","M",13,1,""],[5334292,"Mohamad Nassar","M",20,1,""],[5332516,"Mohamad, Alaeddine","M",14,1,""],[5325153,"Mohamd, Mahdi","M",13,1,""],[5331544,"Mohammad Haidar 2014","M",12,1,""],[5319226,"Mohammad Qudsi","M",14,1,""],[5334349,"Mohammed, Abdalrahman","M",14,1,""],[5312205,"Mohiedine, Houssam","M",56,1,""],[5313708,"Mohsen , Rida Ali","M",18,1,""],[5309050,"Mohsen, Jawad","M",25,1,""],[5309042,"Mohsen, Nehmeh","M",56,1,""],[5303036,"Mokdad, Bassam","M",28,1,""],[5329116,"Mokdad, Jad Ali","M",14,1,""],[5317878,"Mokdad, Mohamad","M",33,0,""],[5306949,"Molla, Mohamad","M",76,1,""],[5305977,"Monsef, Nicolas","M",56,1,""],[5314585,"Monzer, Ali","M",26,1,""],[5314593,"Monzer, Kamal","M",65,1,""],[5317029,"Monzer, Mohamad Jawad","M",17,1,""],[5315468,"Morheb, Omar Ali","M",42,1,""],[5332168,"Mortada, Ali Mohamad","M",17,1,""],[5321409,"Mosleh, Simon","M",34,1,""],[5318521,"Mostafa, Alam","M",36,1,""],[5332931,"Mostafa, Hasan","M",19,1,""],[5317240,"Moteirek, Mohamad Ali","M",23,1,""],[5312710,"Mouawad, Anthony","M",14,0,""],[5317142,"Mouawad, Joseph","M",28,1,""],[5315476,"Mouawad,Sergio","M",11,0,""],[5312680,"Moudalal,Mohamad","M",49,1,""],[5320518,"Moudallal, Mohamad Said","M",26,1,""],[5300630,"Moudallal, Tarek","M",48,1,""],[5308020,"Moudallal,Mohamad","M",29,1,""],[5329701,"Moufarrej, Christian","M",40,1,""],[5304857,"Moughames, Ronald","M",34,1,""],[5316588,"Moughnieh, Ali","M",26,1,""],[5319056,"Moukachar, Ali Rida","M",15,1,""],[5319064,"Moukachar, Sarah Hassan","F",20,1,""],[5317010,"Moukahal,Omar","M",18,1,""],[5322340,"Moukarzel, Charbel","M",19,1,""],[5300088,"Moukhbatt, Judit","F",66,0,""],[5318785,"Mounayar, Maroun","M",62,1,""],[5320178,"Mourad, Joe Andrew Nicolas","M",12,1,""],[5322103,"Mourad, Mohamad","M",22,1,""],[5300517,"Mouradian, Knarik","F",43,0,"WIM"],[5300606,"Mouradian, Suzan","F",44,0,""],[5323088,"Mourtada, Ali","M",18,1,""],[5323096,"Mourtada, Batoul","F",19,1,""],[5317886,"Mourtada, Lana Al Zahraa","F",17,1,""],[5312213,"Mourtada, Mounir","M",56,1,""],[5312884,"Mousa , Hasan,Hussein","M",24,1,""],[5312221,"Mousaed, Dani","M",56,1,""],[5305802,"Mousawi, Kassem","M",66,1,""],[5327377,"Moussa, Cherly","F",10,1,""],[5317894,"Moussa, Elias","M",26,1,""],[5317908,"Moussa, Georges","M",21,0,""],[5327385,"Moussa, Jean-Paul","M",8,1,""],[5329531,"Moussa, Pierre","M",42,1,""],[5327393,"Moussa, Talina","F",11,1,""],[5332559,"Mrad Charbel","M",14,1,""],[5332567,"Mrad Toni","M",12,1,""],[5300290,"Mrad, Charif","M",56,1,""],[5302978,"Mrad, Hamza","M",24,1,""],[5321026,"Mrad, Houssam","M",46,1,""],[5305047,"Mrad, Jad","M",29,1,""],[5327822,"Mrad, Mario","M",36,1,""],[5321174,"Mrad, Mohamad","M",18,1,""],[5326737,"Mrad, Mohamad Ayman","M",18,1,""],[5331056,"Mrad, Rashid","M",10,1,""],[5332176,"Mrad, Thome Chrabel","M",14,1,""],[5313201,"Mroue, Bachar","M",20,0,""],[5320640,"Mroueh , Ryan","M",16,1,""],[5332524,"Mroueh, Mohamad Amjad","M",14,1,""],[5330220,"Mroueh, Mohammed","M",12,1,""],[5333601,"Mrowe, Ali","M",16,1,""],[5300622,"Mroweh, Husein","M",45,0,""],[5312230,"Msaed, Dani","M",56,1,""],[5305810,"Mustafa, Hani","M",66,1,""],[5327490,"Mustafa, Mahmoud","M",44,0,""],[5320569,"NAJIYA , YOUSUF","M",11,1,""],[5316421,"Naameh, Aya","F",41,1,""],[5304016,"Nabah, Ayman","M",46,1,""],[5326745,"Nabhan, Ali","M",14,1,""],[5317150,"Nabhan, Charbel","M",20,1,""],[5329540,"Nabhan, Cybele","F",13,1,""],[5331692,"Nabhan, David","M",28,1,""],[5325161,"Nabhan, Joe","M",16,1,""],[5330017,"Nabhan, Joelle","F",12,1,""],[5305829,"Naboulsi, Mohamad","M",26,1,""],[5317312,"Naboulsi, Ziad","M",52,1,""],[5325544,"Nabulsi, Hasan","M",15,1,""],[5325366,"Nabulsi, Zahraa","F",14,1,""],[5325374,"Nadi, Rama","F",15,1,""],[5306442,"Nadi, Samir","M",63,1,""],[5326753,"Nady, Rama","F",15,1,""],[5316294,"Naffi, Karim Marwan","M",15,1,""],[5307708,"Nahhas, Mostafa","M",32,1,""],[5326168,"Nahra, Georgio","M",11,1,""],[5326176,"Nahra, Kay","F",10,1,""],[5321417,"Naim, Jean","M",35,1,""],[5301963,"Najarian, Nareg","M",30,1,""],[5314607,"Najem, Ahmad","M",26,1,""],[5315484,"Najem, Jean Pierre","M",18,1,""],[5317916,"Najem, Mark","M",18,1,""],[5320526,"Najem, Mohamad","M",26,1,""],[5330238,"Najem, Sama","F",17,1,""],[5313392,"Najiya, Mia","F",16,1,""],[5313406,"Najiya, Naya","F",15,1,""],[5313376,"Najiya,Youssof","M",12,1,""],[5300100,"Najjar, Ahmad","M",60,1,"FM"],[5305314,"Najjar, Essam","M",60,1,""],[5304164,"Najm Eldine, Mohamad","M",56,1,""],[5318793,"Nakad, Bassam","M",50,1,""],[5313104,"Nakib Adham, Nour El Deen","F",12,1,""],[5313112,"Nakib Adham, Rabih","M",15,1,""],[5319307,"Nakib, Nabil","M",11,1,""],[5317924,"Nalbandian, Marco","M",21,1,""],[5319447,"Nammour, Rania","F",52,1,""],[5327105,"Nammour, Richard","M",38,1,""],[5326958,"Naser Alddin, Ibrahim","M",27,1,""],[5323100,"Naser Eldine, Abdel Majid","M",14,1,""],[5332869,"Naser, Mahdi Mohamad","M",28,1,""],[5333083,"Nasnas, Roger Joseph","M",15,1,""],[5320801,"Nasr , Raed","M",38,1,""],[5328730,"Nasr, Elie","M",10,1,""],[5326222,"Nasr, Jason","M",11,1,""],[5317932,"Nasr, Maher","M",33,1,""],[5328721,"Nasr, Widad","F",12,1,""],[5327830,"Nasr, Yamen","M",21,1,""],[5331315,"Nasrallah, Ali","M",23,1,""],[5326761,"Nasrallah, Majd","M",22,1,""],[5317258,"Nasrallah, Mohamad","M",26,1,""],[5317940,"Nasrallah, Sara","F",27,1,""],[5327407,"Nasrany, Jacques","M",21,1,""],[5304415,"Nassar, Amer","M",26,1,""],[5305373,"Nassar, Charbel","M",66,1,""],[5301360,"Nassar, Fadi Nicholas","M",37,1,""],[5315913,"Nassar, Fawzi","M",24,1,""],[5316308,"Nassar, Fawzi Chawki","M",24,1,""],[5310849,"Nassar, Ibrahim","M",75,1,""],[5304261,"Nassar, Marc","M",30,1,""],[5301343,"Nassar, Marwan","M",43,1,""],[5320720,"Nasser , Ali","M",11,1,""],[5330025,"Nasser El Dine, Hashem","M",13,1,""],[5313643,"Nasser el Deen , Hadi Mohamad","M",26,1,""],[5313317,"Nasser, Hadi","M",25,1,""],[5330246,"Nasser, Lea","F",7,1,""],[5325170,"Nasser, Mohamad Hussein","M",27,1,""],[5300312,"Nasser, Nabil","M",48,0,""],[5303982,"Nasser, Youssef","M",33,1,""],[5312795,"Nassif Charbel , Elie","M",14,1,""],[5311403,"Nassif, Mariel","M",16,0,""],[5311411,"Nassif, Maroun","M",18,1,""],[5330955,"Nassif, Roaa","F",11,1,""],[5326230,"Nassour, Roudy","M",24,1,""],[5312248,"Nassralah, Akil","M",56,1,""],[5315492,"Nassralah, Hussein Ali","M",23,1,""],[5308240,"Nassrallah, Mouslem","M",25,0,""],[5320348,"Nawfal , Georges","M",48,1,""],[5306450,"Nawfal, Raja","M",41,1,""],[5306108,"Nazaretian, Nareg","M",25,1,""],[5306116,"Nazaretian, Serouj","M",23,1,""],[5320186,"Nehme, Roy","M",25,1,""],[5316596,"Nehmeh, Ibrahim","M",31,1,""],[5310857,"Nejmeh, Hussein","M",33,1,""],[14100908,"Nekrasova, Elena","F",56,0,"WFM"],[5319838,"Neshabeh, Abdallah","M",20,1,""],[5309255,"Niemela, Karim","M",41,1,""],[5322111,"Njeim, Majd Ata","M",18,1,""],[5332737,"Njiem, Elias","M",13,1,""],[5328055,"Nour, Mickael Yassine","M",26,1,""],[5307139,"Nour, Toufic","M",24,1,""],[5330963,"Nour, Toufik","M",24,1,""],[5308828,"Nour, Yassin","M",17,1,""],[5328063,"Nour, Yassine","M",26,1,""],[5328071,"Nouraldeen, Roni","M",24,1,""],[5316316,"Noureddine, Amir","M",34,1,""],[5315719,"Noureddine, Moufid Amir","M",28,1,""],[5330033,"Noureddine, Roni","M",24,1,""],[5328705,"Nurpetlian, Jack","M",56,1,""],[5325382,"Nurpetlian, Nayiri","F",11,1,""],[5319072,"Nuwayhed, Daniel","M",28,1,""],[5318807,"Obegi, Karim","M",19,0,""],[5306965,"Obeid, Fadi","M",76,1,""],[5306973,"Obeid, Fawaz","M",36,1,""],[5306981,"Obeid, Jad","M",36,1,""],[5328241,"Obeid, Maria","F",11,1,""],[5311284,"Obeid, Omar","M",27,0,""],[5326770,"Ohanian, Sevag","M",13,1,""],[5302269,"Oknayan, Jirair","M",35,0,""],[5301602,"Oknayan, Razmig","M",34,0,""],[5314615,"Omama, Rami","M",23,1,""],[5332532,"Omar, Adam","M",9,1,""],[5316707,"Omar, Ali Maewan","M",26,1,""],[5332788,"Omar, Ismail","M",21,1,""],[5333016,"Omar, Maher Saleh","M",35,1,""],[5327644,"Orabi, Derar","M",23,1,""],[5327652,"Orabi, Mohammed","M",19,1,""],[5329558,"Osman, Ibrahim","M",12,1,""],[5334225,"Osseily, Ihsan","M",13,1,""],[5314623,"Othman, Louai","M",23,1,""],[5313457,"Othman, Mohammed Fayez","M",23,1,""],[5324475,"Ouayday, Oussama","M",20,1,""],[5324483,"Ouayday, Sara","F",18,1,""],[5312256,"Oumais, Ahmad","M",56,1,""],[5312264,"Oumais, Khaled","M",56,1,""],[5312272,"Oumais, Tarek","M",56,1,""],[5316324,"Ourabi, Ismail","M",34,1,""],[5312280,"Outa, Wiliam","M",56,1,""],[5315069,"Ouzer, Hussein","M",25,1,""],[5304172,"Oweidat, Bilal","M",56,1,""],[5304180,"Oweidat, Youssef","M",40,1,""],[5331382,"Ozeir, Nabil","M",64,1,""],[5333920,"Ozoor, Tia","F",11,1,""],[5333938,"Ozoor, Ziad","M",12,1,""],[5327415,"Paul, Michael","M",11,1,""],[5325552,"Qabalan, Ali","M",18,1,""],[5326095,"Qsseiran, Yara","F",14,1,""],[5317959,"Qudsi, Mohammad","M",14,1,""],[5318530,"Qussai, Anboucheh","M",15,1,""],[5331218,"Raad, Jude","M",14,1,""],[5317967,"Raad, Mahdi","M",12,1,""],[5312299,"Rabah Mohamad, Rida","M",56,1,""],[5307937,"Rabah, Ahmad","M",31,1,""],[5312302,"Rabah, Mohamad Salim","M",56,1,""],[5302064,"Rabah, Rabih","M",53,1,""],[5305586,"Rabbat, Nadim","M",41,1,""],[5328489,"Rached, Jeffrey","M",23,1,""],[5333610,"Raed, Mohamad","M",14,1,""],[5325854,"Rahal, Ali","M",33,1,""],[5328810,"Rahal, Ali Hassan","M",28,1,""],[5324777,"Rahbani, Mathew","M",14,1,""],[5305055,"Rahbany, Rany","M",37,1,""],[5325927,"Rahhal,Serje","M",25,1,""],[5310865,"Rahme, Dani","M",59,1,""],[5315930,"Rahme, Reeta","F",36,1,""],[5317975,"Rajeh, Kamal Malaeb","M",23,1,""],[5331803,"Raji, Henry","M",15,1,""],[5314011,"Ramadan , Khaled Ibrahim","M",26,1,""],[5314020,"Ramadan , Khaled Mohamad","M",36,1,""],[5333849,"Ramadan Ali Jawad","M",15,1,""],[5333857,"Ramadan Mohamad Mahdi","M",7,1,""],[5333865,"Ramadan Nour Fatima","F",12,1,""],[5307341,"Ramadan, Khaled","M",31,1,""],[5316340,"Ramadan, Lea Naia","F",15,1,""],[5308291,"Ramadan, Mohamad","M",55,1,""],[5309069,"Ramadan, Ramadan","M",36,1,""],[5316359,"Ramadan, Yasmina Ray","F",14,1,""],[5324122,"Ramadan,Ali","M",15,1,""],[5301130,"Rammal, Ayman","M",41,0,""],[5328594,"Rammal, Celena","F",14,1,""],[5328608,"Rammal, Karim","M",10,1,""],[5332036,"Raya, Ahmad Walid","M",19,1,""],[5332044,"Raya, Ali Hussein","M",18,1,""],[5331641,"Rayan Mohamad Barhoumeh","M",11,1,""],[5320194,"Reaidy, Amadeus","M",14,1,""],[5316367,"Rechdan, Rayan","M",19,1,""],[5305594,"Rechmani, Fouad","M",52,1,""],[5320208,"Remman, Johnathon","M",17,1,""],[5320216,"Remman, Peter","M",18,1,""],[5325676,"Reslan,Yousuf","M",15,1,""],[5325919,"Reslan,Yousuf","M",25,1,""],[5315077,"Richa, Antoine","M",67,1,""],[5305063,"Richani, Elie","M",56,1,""],[5305071,"Richani, Michel","M",56,1,""],[5312310,"Rifaaie, Hasan","M",56,1,""],[5326966,"Rihani, Hasan","M",33,1,""],[5325560,"Riman, Karim","M",16,1,""],[5330351,"Rishani, Hadi","M",15,1,""],[5316855,"Rizek,Joury","F",10,1,""],[5323118,"Rizk, Hassan Hamad","M",11,1,""],[5309247,"Rizk, Karim","M",66,1,""],[5310466,"Rizkalah, Anthony Georges","M",25,1,""],[5304679,"Rizkallah, Rabel","M",33,0,""],[5305195,"Rochdi, Mohamad Kheir Sarout","M",24,1,""],[5319110,"Roger Abi Rached","M",15,1,""],[5310474,"Romanos, Jad Antoinne","M",45,1,""],[5316715,"Romanos, Tony Jacques","M",33,1,""],[5327423,"Roukoz, Chadi","M",27,1,""],[5305381,"Rustom, Shawki","M",55,1,""],[5324688,"Ryan, Maroun","M",23,1,""],[5313767,"Saab , Riad Dany","M",26,1,""],[5334179,"Saab Sam","M",8,1,""],[5331064,"Saab, Iyan","M",15,1,""],[5330475,"Saab, Karim","M",26,1,""],[5325862,"Saab, Mario","M",30,1,""],[5309123,"Saab, Riad","M",25,1,""],[5327725,"Saab,Fabiolla","F",48,1,""],[5328080,"Saad, Charbel Fadi","M",16,1,""],[5331528,"Saad, Christopher","M",13,1,""],[5328098,"Saad, Clara Fadi","F",14,1,""],[5319846,"Saad, Georges","M",23,1,""],[5308160,"Saad, Maan","M",64,1,""],[5321743,"Saad, Mahmoud","M",19,1,""],[5311705,"Saad, Rawad","M",14,1,""],[5308208,"Saad, Saden","M",56,1,""],[5308186,"Saad, Samer","M",53,1,""],[5324696,"Saad, Tarek","M",15,1,""],[5332877,"Saade, Issa","M",21,1,""],[5321425,"Saade, Rayan","M",28,1,""],[5315948,"Saade, Richard","M",29,1,""],[5329710,"Saade,Imad","M",14,1,""],[5311110,"Saadeddine, Adam","M",14,1,""],[5311489,"Saadeddine, Lana","F",12,1,""],[5325390,"Saadeddine, Lea","F",10,1,""],[5302838,"Saadeh, Antoine","M",50,1,""],[5333628,"Saadeh, Elie","M",15,1,""],[5310482,"Saadeh, Rami","M",40,1,""],[5312477,"Saadeh, Selena","F",17,1,""],[5323878,"Saadi, Omar","M",16,1,""],[5311497,"Saadieh, Mia","F",18,1,""],[5322359,"Saati, Chadi","M",28,1,""],[5311128,"Saba, Georges","M",28,0,""],[5319366,"Sabaayon, Mostafa","M",14,1,""],[5325579,"Sabagh, Rida","M",36,1,""],[5325188,"Sabbagh, Rida","M",25,1,""],[5325196,"Saber, Jad","M",32,1,""],[5325200,"Saber, Samer","M",32,1,""],[5319145,"Sabine Alzein","F",13,1,""],[5320224,"Sadaka, Karl","M",21,1,""],[5316723,"Sadaka, Tarek","M",56,1,""],[5316774,"Sadaqa, Naima","F",56,1,""],[5323126,"Sadek, Mohamad Ibrahim","M",16,1,""],[5310709,"Sadek, Nadim Ryan","M",16,1,""],[5330254,"Safa, Joudi","F",14,1,""],[5307228,"Safa, Mohamad Baker","M",56,1,""],[5330262,"Safa, Youssef","M",10,1,""],[5307023,"Safi, Michel","M",36,1,""],[5327075,"Safieddine, Mohamad Baker","M",21,1,""],[5311420,"Sahmarani, Arseni","M",18,1,""],[5312329,"Saied Kasem, Mehdi Ahmad","M",56,1,""],[5324700,"Saifedidine, Mahmoud","M",36,1,""],[5326133,"Sakka, Adam","M",13,1,""],[5326125,"Sakka, Aline","F",10,1,""],[5307716,"Sakka, Bashir","M",39,1,""],[5327431,"Sakr, Abdo","M",44,1,""],[5300185,"Sakr, Nassim","M",53,0,"CM"],[5310490,"Sakr, Nassim Boulos","M",51,1,""],[5319080,"Salam, Noor","F",15,1,""],[5329680,"Salam, Reina","F",24,1,""],[5325218,"Salame, Celio","M",26,1,""],[5325226,"Salame, Leo","M",26,1,""],[5303702,"Salame, Tasha Maria","F",26,1,""],[5306469,"Salameh, Ali","M",40,1,""],[5329124,"Salameh, Baligh Wissam","M",14,1,""],[5320232,"Salameh, Celine-Rita","F",18,1,""],[5326567,"Salameh, Celio Wissam","M",14,1,""],[5321751,"Salameh, Khalil","M",28,1,""],[5304873,"Salameh, Mohamad","M",32,1,""],[5326117,"Salameh, Mohamad","M",14,1,""],[5306477,"Salameh, Mostapha","M",22,1,""],[5303990,"Salameh, Rami","M",56,0,""],[5306485,"Salameh, Rawad","M",20,1,""],[5307783,"Salameh, Sleiman","M",50,1,""],[5327660,"Salameh, Wissam","M",16,1,""],[5333393,"Saleh Marwan","M",40,1,""],[5330270,"Saleh, Ali","M",34,1,""],[5327679,"Saleh, Jihad","M",24,1,""],[5325234,"Saleh, Karim","M",29,1,""],[5315085,"Saleh, Mohamad Maher","M",47,1,""],[5313589,"Saleh, Mostapha Ahmad","M",24,1,""],[5316375,"Saleh, Nawfal Ahmad","M",22,1,""],[5301980,"Saleh, Riham","M",28,1,""],[5309433,"Saleh, Walid","M",58,1,""],[5305179,"Salem Maraabouni, Fatina","F",25,1,""],[5323827,"Salem, Mahamad","M",26,1,""],[5332311,"Salem, Rachad","M",38,1,""],[5318190,"Salem, Ralph","M",11,1,""],[5333237,"Salha Syntia","F",23,1,""],[5321433,"Salha, Liwaa","M",24,1,""],[5326575,"Salhab, Muhammad","M",70,1,""],[5328101,"Saliba, Charbel","M",11,1,""],[5320240,"Saliba, Karim","M",15,1,""],[5315727,"Saliba, Marc","M",14,1,""],[5326249,"Saliba, Marc Samer","M",20,1,""],[5307350,"Saliba, Nicolas","M",41,1,""],[5309000,"Saliba, Ralph","M",25,1,""],[5304369,"Saliba, Sam Andrew","M",24,0,""],[5321891,"Saliba, Sandro","M",22,1,""],[5315093,"Saliba, Walid Karl","M",21,1,""],[5320704,"Salloukh , Wassim","M",15,1,""],[5323835,"Salloukh, Iyad","M",17,1,""],[5323843,"Salloukh, Wassim","M",15,1,""],[5320968,"Salloum , Sadek","M",22,1,""],[5318637,"Salloum ,Lucas","M",13,1,""],[5306043,"Salloum, Rita","F",21,1,""],[5334098,"Salman Abed El Hussein","M",18,1,""],[5310644,"Salman, Fatima","F",20,1,""],[5326257,"Salman, Jamal","M",28,1,""],[5328748,"Salman, Karim","M",7,1,""],[5307511,"Salman, Lana","F",17,1,""],[5329132,"Salman, Mlouk","M",10,1,""],[5323410,"Salman, Mohamad","M",21,1,""],[5325587,"Salman, Rony","M",21,1,""],[5307503,"Salman, Samer","M",22,1,""],[5307520,"Salman, Tarek","M",48,1,""],[5312337,"Salom, Mohamad Salim","M",56,1,""],[5305837,"Samaha, Amin","M",66,1,""],[5324041,"Samaha, Hadi","M",17,1,""],[5330483,"Samaha, Sebou","M",15,1,""],[5316995,"Samaha,Nabil","M",11,1,""],[5324157,"Samhoun,Adam","M",16,1,""],[5324165,"Samhoun,Laya","F",19,1,""],[5327067,"Samia, Georges","M",13,1,""],[5327440,"Samman, Karim","M",26,1,""],[5307953,"Samoillian, Wajeh","M",62,1,""],[5319382,"Sanjar, Ahmad","M",10,1,""],[5317983,"Sanjar, Aya","F",13,1,""],[5333741,"Sankari, Amin","M",28,1,""],[5332060,"Saoud Rami","M",12,1,""],[5315956,"Saoud, Mehrez","M",34,1,""],[5323428,"Sarhan, Imad","M",18,1,""],[5309620,"Saridar, Toufic","M",29,0,""],[5316731,"Sarkis, Antoine Habib","M",63,1,""],[5321760,"Sarmini, Omar","M",18,1,""],[5319528,"Saroufim, Jason","M",26,1,""],[5306493,"Sayah, Hisham","M",52,0,""],[5313490,"Sayde, Sergio","M",25,1,""],[5310407,"Sayed Ahmad, Ali Ghadi","M",16,1,""],[5332613,"Sayed Mahdawi, Jaafar","M",37,1,""],[5313627,"Sayegh , Imad Jad","M",28,1,""],[5313171,"Sayegh, Jumana","F",13,1,""],[5311101,"Sayegh, Mariam","F",16,0,""],[5317991,"Sayfidinne, Gazy","M",11,1,""],[5333750,"Sayour, Mohamad Nour","M",19,1,""],[5314631,"Sayyah, Jawad","M",23,1,""],[5310415,"Sayyed Ahmad, Ali Zaher","M",21,1,""],[5316782,"Sayyed, Ahmad","M",56,1,""],[5316383,"Sayyed, Anas","M",56,1,""],[5316391,"Sayyed, Ziad","M",56,1,""],[5315107,"Sayyid, Ahmad","M",17,1,""],[5315115,"Sayyid, Anass","M",16,1,""],[5315123,"Sayyid, Ziad","M",13,1,""],[5309131,"Schoucair, Matteo","M",24,1,""],[5305225,"Schoucair, Thomas","M",20,0,""],[5316405,"Seblani, Ali Wissam","M",25,1,""],[5325668,"Seblini, Ali","M",25,1,""],[5322367,"Seifeddine, Ghazi","M",11,1,""],[5319200,"Selena Ghaddar","F",10,1,""],[5318548,"Semaan, Abbas","M",37,1,""],[5312345,"Semaan, Firas","M",56,1,""],[5312353,"Semaan, Jamal","M",56,1,""],[5320534,"Semaan, Nathalie","M",26,1,""],[5332184,"Semaan, Zahi","M",57,1,""],[5312930,"Semerdjian Raffi Ulyss , Arek","M",19,1,""],[5326788,"Sepetdjian, Sosse","F",12,1,""],[5333202,"Serhal, Arwa Hassan","M",12,1,""],[5323584,"Serhan, Mohammad","M",38,1,""],[5311438,"Sermanoukian, Alexander","M",20,0,""],[5320542,"Sermanoukian, Francesco","M",13,1,""],[5324050,"Seropian, Seraphina","F",15,1,""],[5321905,"Seropian, Zareh","M",16,1,""],[5306507,"Seukunian, Shahe","M",38,1,""],[5322375,"Sfeir, Anthony","M",22,1,""],[5325870,"Sfeir, Jad","M",20,1,""],[5311675,"Sfeir, Samer","M",28,1,""],[5316600,"Shaaito, Youssef","M",24,0,""],[5306515,"Shaashouh, Ahmad","M",56,1,""],[5306523,"Shaashouh, Ali","M",56,1,""],[5330718,"Shafi, Ibrahim","M",27,1,""],[5311713,"Shaker, Sila","F",14,1,""],[5311721,"Shaker, Zeina","F",14,1,""],[5334187,"Shames Wassim","M",27,1,""],[5310423,"Shami, Abdelrahman","M",19,1,""],[5300444,"Shamieh, Jamal","M",41,0,""],[5300509,"Shamieh, Mahmoud","M",39,0,"CM"],[5302196,"Shamieh, Sara","F",36,0,"WCM"],[5304687,"Shamieh, Sayed","M",38,1,""],[5328829,"Shamseddine, Hussein","M",20,1,""],[5314640,"Shamseddine, Jad","M",45,1,""],[5311560,"Shamseddine, Jessica","F",30,1,""],[5306531,"Sharaf, Hassan","M",56,1,""],[5312361,"Sharafddine, Toufic","M",56,1,""],[5316618,"Sharafeddine, Jawad","M",26,1,""],[5325595,"Sharafildim, Naja","M",25,1,""],[5314658,"Sharif, Nour","F",30,1,""],[5306540,"Shawwa, Mohamad","M",23,1,""],[5314666,"Shbeeb, Makhoul","M",23,1,""],[5310032,"Shbib, Nader","M",26,1,""],[5322014,"Shehab, Mohammad","M",16,1,""],[5307740,"Shehab, Moustafa","M",39,1,""],[5305608,"Shehayeb, Nader","M",51,1,""],[5315506,"Sheikh El Balad, Mohamad Omar","M",36,1,""],[5330823,"Sherbetjian, Serly","F",15,1,""],[5312990,"Shhadeh Ali , Imad","M",45,1,""],[5331811,"Shmaisany, Ali","M",24,1,""],[5325609,"Shmait, Lewaa","M",17,1,""],[5318203,"Shmait, Lewaa Rawzaba","M",17,1,""],[5315212,"Shmoury, Abdelrahim","M",21,1,""],[5306558,"Shokor, Hady","M",24,1,""],[5306566,"Shokor, Haydar","M",22,1,""],[5306574,"Shokor, Hussein","M",24,1,""],[5329698,"Shoucair, Alexander","M",17,1,""],[5304431,"Shoueib, Jad","M",23,1,""],[5304423,"Shoueib, Rami","M",20,1,""],[5305845,"Shreidi Ple, Kamal","M",65,1,""],[5319854,"Shuaib, Malek","M",17,1,""],[5313040,"Sidani, Marcel","M",15,1,""],[5303320,"Singer, Imad","M",45,0,""],[5320739,"Sinno , Abdul Salam","M",41,1,""],[5320771,"Sinno , Hicham","M",22,0,""],[5320747,"Sinno , Mohamad-Osman","M",21,0,""],[5307791,"Sinno, Hassan","M",39,1,""],[5312612,"Sino,Mohamad","M",21,1,""],[5322120,"Sioufi, Marc","M",21,1,""],[5324068,"Sioufi, Oussama","M",25,1,""],[5321441,"Sires, Fahed","M",24,1,""],[5330360,"Skaff, Zayd","M",10,1,""],[5330971,"Sleem, Hadi","M",18,1,""],[5325242,"Sleem, Jalal","M",23,1,""],[5305616,"Sleiman Tillawi, Mohammad","M",51,1,""],[5332192,"Sleiman, Alexandre Ali Nidal","M",17,1,""],[5332206,"Sleiman, Alsherif","M",46,1,""],[5332214,"Sleiman, Badih","M",46,1,""],[5306990,"Sleiman, Ghassan","M",36,1,""],[5324246,"Sleiman, Khaled","M",36,1,""],[5333768,"Sleiman, Mohamad","M",36,1,""],[5332222,"Sleiman, Moustapha","M",77,1,""],[5312370,"Sleiman, Nasr","M",56,1,""],[5332230,"Sleiman, Nasr","M",73,1,""],[5331129,"Sleiman, Youssef","M",13,1,""],[5332249,"Sleiman, Youssef Chad","M",51,1,""],[5334357,"Slik, Mahmoud","M",11,1,""],[5334365,"Slik, Yazen","M",11,1,""],[5316413,"Slim, Alex","M",14,1,""],[5324076,"Slim, Ali","M",35,1,""],[5318009,"Slim, Jad","M",26,1,""],[5307007,"Slim, Nadim","M",38,1,""],[5330726,"Slim, Rani","M",30,1,""],[5331072,"Slim, Souheil","M",39,1,""],[5333024,"Soboh, Ali Hussein","M",15,1,""],[5325897,"Soboh,Rakan","M",16,1,""],[5300754,"Somoff, Abdo","M",65,0,"FM"],[5306159,"Somoff, Alexiy","M",16,1,""],[5303044,"Somoff, Christina","F",20,0,""],[5310156,"Somoff, Georges","M",52,1,""],[5320259,"Somoff, Noah","M",11,1,""],[5316634,"Somoff, Steven","M",56,1,""],[5319099,"Sorokhin, Roman","M",17,1,""],[5320267,"Souaid, Elie","M",32,1,""],[5329582,"Soued, Jawad Massoud","M",18,1,""],[5312388,"Soued, Khaled","M",56,1,""],[5304199,"Soueid, Khaled","M",56,1,""],[5327458,"Soueid, Mahdi","M",29,1,""],[5330289,"Soueidan, Taline","F",16,1,""],[5334373,"Sourani, Dib","M",18,1,""],[5330297,"Srour, Karim","M",13,1,""],[5323134,"Stanboulian, Hrag","M",22,1,""],[5323142,"Sweid, Jawad","M",21,1,""],[5321182,"Sweidan, Ali","M",24,1,""],[5307236,"Tabaja, Ali","M",19,0,""],[5327687,"Tabbara, Khalil","M",26,1,""],[5327695,"Tabbara, Omar","M",15,1,""],[5311446,"Tabet, Habib","M",70,1,""],[5305918,"Tadros, Richard","M",43,1,""],[5331536,"Tafech, Adam","M",13,1,""],[5327709,"Taghlubi, Loay","M",20,1,""],[5323436,"Taha, Diaa","M",56,1,""],[5318556,"Taha, Faten","F",32,1,""],[5322138,"Taha, Hassan","M",58,1,""],[5327849,"Taha, Khaled","M",13,1,""],[5327857,"Taha, Saria","M",15,1,""],[5321565,"Taha,Hussain","M",59,1,""],[5333776,"Tahan, Faudel","M",26,1,""],[5333784,"Tahan, Jad","M",26,1,""],[5323150,"Takkash, Bachar","M",22,0,""],[5327865,"Takkoush, Abdallah","M",19,1,""],[5317266,"Talayee, Rawad","M",37,1,""],[5317169,"Talayeh, Rawad","M",37,0,""],[5313120,"Taleb Hussein, Batoul","F",13,1,""],[5316863,"Taleb,Khaldoun","M",60,1,""],[5321450,"Talge, Dimitri","M",31,1,""],[5314674,"Tamim, Omar","M",26,1,""],[5312485,"Tamim,Abdullah","M",22,1,""],[5318211,"Tannoury, Bassam","M",41,1,""],[5334071,"Tannoury, Elia","M",13,1,""],[5318564,"Tannoury, Youssef","M",16,1,""],[5331390,"Tannoury, Youssef Wissam","M",16,1,""],[5320593,"Tarabay , Adonis","M",28,1,""],[5316910,"Tarabay Hady","M",22,1,""],[5325889,"Tarabay, Bernard","M",21,1,""],[5304695,"Tarabey, Mohamad","M",25,1,""],[5313147,"Tarchichi, Anthony","M",19,1,""],[5331820,"Tarhini, Ali","M",10,1,""],[5302986,"Tarpinian, Carlo","M",26,1,""],[5323169,"Tarraf, Ali Abbas","M",13,1,""],[5315514,"Tarraf, Ali Hussein","M",61,1,""],[5318572,"Tarraf, Hassan","M",61,1,""],[5301262,"Tarraf, Tarraf","M",53,1,""],[5318580,"Tarraf, Walid","M",40,1,""],[5322146,"Tartoussi, Mahmoud Ghazi","M",27,1,""],[5326796,"Tawil, Charbel","M",16,1,""],[5321468,"Tawk, Charbel","M",19,1,""],[5315964,"Tawk, Fayez","M",44,1,""],[5328497,"Tawk, Youssef Elie","M",13,1,""],[5309271,"Tayara, Rayane","F",32,1,""],[5311292,"Tayeh, Ram","M",21,1,""],[5309204,"Tcharekian, Manuel","M",17,1,""],[5309212,"Tcharekian, Mariana","F",18,1,""],[5326800,"Teheni, Shaden","F",10,1,""],[5332389,"Temsah Rayan","M",13,1,""],[5331749,"Temsah, Rayan","M",13,1,""],[5331757,"Temsah, Yaman","M",15,1,""],[5304458,"Tenbelian, Alik","F",20,1,""],[5318220,"Tenbelian, Haig","M",20,0,""],[5329140,"Terjanian, Aleco Manouk","M",40,1,""],[5329159,"Terjanian, Hagop Manouk","M",40,1,""],[5313988,"Termos , Ali Hasan","M",35,1,""],[5334209,"Termos Ali Khalil","M",23,1,""],[5312396,"Termos, Hasan","M",56,1,""],[5307678,"Thib, Hatem","M",33,1,""],[5309638,"Thoumi, Antoine","M",43,1,""],[5305390,"Tillawi, Mohammad","M",35,1,""],[5315131,"Timani, Fouad Jihad","M",58,1,""],[5330041,"Tleis, Adam","M",14,1,""],[5330050,"Tleis, Jad","M",13,1,""],[5302080,"Tohme, Antoine","M",45,0,""],[5318599,"Tohme, Charbel","M",39,1,""],[5309930,"Tohme, Johnny","M",28,1,""],[5304881,"Tohme, Mansour","M",36,1,""],[5318602,"Tohme, Tony","M",19,1,""],[5309220,"Toko, Jamal","M",36,1,""],[5300398,"Tomb, Maroun","M",42,0,"CM"],[5320810,"Topalian , GreGory","M",14,1,""],[5305322,"Topalian, Minas","M",46,1,""],[5301637,"Torbey, Sara","F",43,0,""],[5312949,"Torossian Howanes, Alex","M",24,1,""],[5304709,"Torossian, Hovhannes","M",56,0,""],[5319862,"Totonji, Kamal","M",31,1,""],[5303311,"Toubaili, Taha","M",37,0,""],[5301335,"Toufayli, Adnan","M",56,0,""],[5319269,"Toufic Souss","M",15,1,""],[5315140,"Toukatli, Jean Joseph","M",69,1,""],[5328110,"Touma, Fadi","M",21,1,""],[5327466,"Touma, Marc Anthony","M",20,1,""],[5304890,"Traboulsi, Mohamad Rafic","M",44,1,""],[5310873,"Traboulsi, Rabih Fahim","M",49,1,""],[5310881,"Traboulsi, Theo Joe","M",16,0,""],[5318610,"Trad, Charbel","M",18,1,""],[5325250,"Trad, Khaled","M",16,1,""],[5322154,"Trad, Sharbel","M",18,1,""],[5308852,"Trad,Youssef","M",19,1,""],[5314682,"Tro, Zeittian","M",26,1,""],[5332885,"Tubaily, Wahib","M",67,1,""],[5309441,"Tutunjian, Avedis","M",67,1,""],[5321476,"Usta, Abdul Rahman","M",45,1,""],[5321484,"Usta, Hasan","M",12,1,""],[5321492,"Usta, Jamal","M",15,1,""],[5330890,"Vartanian, Ari","M",30,1,""],[5332621,"Vincenti, Carlo","M",26,1,""],[5331323,"Vincenti, Giuseppe","M",9,1,""],[5325269,"Wadih, Michel","M",17,1,""],[5319250,"Wafic Jumaa","M",15,1,""],[5312400,"Wardani, Omran","M",56,1,""],[5320275,"Warde, Alexander","M",13,1,""],[5320283,"Warde, Joe","M",17,1,""],[5320291,"Warde, Ziad","M",53,1,""],[5334128,"Watfa Ali Akbar","M",14,1,""],[5319579,"Wazen , Karl","M",18,1,""],[5304377,"Wehbe, Karim","M",24,1,""],[5318629,"Wehbe, Michael Raif Naim","M",24,1,""],[5323851,"Wehbe, Roy","M",18,1,""],[5312701,"Wehbe,Joumana","F",56,1,""],[5320305,"Wehbeh, Samer","M",49,1,""],[5309840,"Wehbi, Ahmad","M",18,1,""],[5311578,"Wehbi, Alaa","F",14,1,""],[5310652,"Wehbi, Joe","M",24,1,""],[5332745,"Wehbi, Mohamad Yehya","M",33,1,""],[5323177,"Wehbi, Roy Sabr","M",18,1,""],[5312531,"Wehbi,Hussein Mohamad","M",26,1,""],[5322383,"Wendorff, Richard","M",20,1,""],[5313678,"Yacoub , Habib Nabil","M",56,1,""],[5333822,"Yaghi Hassan","M",37,1,""],[5323185,"Yaghi, Hassan","M",14,1,""],[5328713,"Yaghi, Hosen Samir","M",38,1,""],[5315522,"Yaman, Kinda","F",16,1,""],[5311187,"Yaman, Wajeeh","M",30,0,""],[5328128,"Yamin, Badaoui","M",20,1,""],[5328500,"Yamine, Badaoui","M",21,1,""],[5311683,"Yammine, Carlos","M",17,1,""],[5328136,"Yammine, Kevin","M",14,1,""],[5323444,"Yamout, Mohamad","M",19,1,""],[5321778,"Yamout, Mohamad Yamout","M",17,1,""],[5321786,"Yamout, Rami","M",37,1,""],[5314690,"Yaseen, Anas","M",38,1,""],[5314704,"Yaseen, Mohamad","M",43,1,""],[5314712,"Yaseen, Walid","M",44,1,""],[5312418,"Yasin, Nizar Abdul Rahman","M",26,1,""],[5325617,"Yasin, Walid","M",12,1,""],[5319188,"Yasmina Ghaddar","F",14,1,""],[5319153,"Yasmine El Hajj Chehade","F",12,1,""],[5325625,"Yasseen, Ibrahim","M",12,1,""],[5326818,"Yassine, Hussein","M",13,1,""],[5326826,"Yassine, Maya","F",12,1,""],[5323592,"Yazbeck, Emile","M",15,1,""],[5323606,"Yazbeck, Marcel","M",18,1,""],[5323614,"Yazbeck, Ryan","M",13,1,""],[5312493,"Yazbek Karam,Nadim","M",15,1,""],[5324785,"Yazbek, Elie","M",15,1,""],[5333636,"Yehia, Fatima","F",11,1,""],[5308143,"Yehia, Mohamad","M",25,1,""],[5330300,"Yehya, Ghina","F",15,1,""],[5327873,"Yehya, Hussein","M",31,1,""],[5320313,"Yelanjian, Harout","M",16,1,""],[5312647,"Younes, Christian","F",13,1,""],[5304202,"Younes, Dany","M",56,1,""],[5325277,"Younes, El Kaakour","M",35,1,""],[5313481,"Younes, Hadi","M",22,1,""],[5326834,"Younes, Julia","F",11,1,""],[5330831,"Younes, Julia","F",12,1,""],[5321506,"Younes, Mohamad Hussein","M",22,1,""],[5326842,"Younes, Mohammad","M",16,1,""],[5323193,"Younes, Moustapha","M",63,1,""],[5304903,"Younes, Ramy","M",52,1,""],[5323860,"Younes, Rida","M",23,1,""],[5311500,"Younes, Youssef","M",13,1,""],[5324130,"Younes,Youssef","M",10,1,""],[5330319,"Younis, Hussein","M",54,1,""],[5330327,"Younis, Moustafa","M",63,1,""],[5329744,"Younis, Youssef El Sedeek","M",20,1,""],[5320674,"Youssef , Ali","M",12,1,""],[5320658,"Youssef , Ghena","F",15,1,""],[5324718,"Youssef, Ahmad","M",13,1,""],[5323649,"Youssef, Charbel","M",15,1,""],[5319870,"Youssef, Elias","M",21,1,""],[5329175,"Youssef, Ibrahim","M",17,1,""],[5324726,"Youssef, Kamal Eldine","M",13,1,""],[5326850,"Youssef, Mohammad Jawad","M",12,1,""],[5316790,"Zaaiter, Hassan","M",56,1,""],[5316804,"Zaaiter, Mohammed","M",56,1,""],[5316812,"Zaaiter, Salim","M",56,1,""],[5313694,"Zaarour , Abdullah Rabeeh","M",39,1,""],[5331765,"Zaarour Jad","M",8,1,""],[5311691,"Zaatari, Abdallah","M",14,1,""],[5311764,"Zaatari, Mustafa","M",17,1,""],[5312426,"Zahabi, Walid","M",56,1,""],[5332630,"Zahar, Henri","M",43,1,""],[5306582,"Zahmoul, Hassan","M",20,1,""],[5308119,"Zahra,Bassam","M",26,1,""],[5320585,"Zahreddine , Sultan","M",42,1,""],[5314003,"Zahreddine, Abbass Ali","M",21,1,""],[5309158,"Zahwi, Ahmad","M",24,1,""],[5309166,"Zahwi, Mohamad","M",26,1,""],[5307368,"Zaidan, Saad El-Din","M",57,1,""],[5308569,"Zailaa, Faisal","M",23,1,""],[5326869,"Zaiter, Hussein","M",12,1,""],[5317274,"Zaitouni, Jad","M",32,1,""],[5330335,"Zamet, Adam","M",15,1,""],[5318238,"Zankar, Mohamad","M",26,1,""],[5318041,"Zantar,Mohamad","M",12,1,""],[5330734,"Zaraket, Hussien","M",29,1,""],[5302862,"Zarrini, Tiffany","F",30,1,""],[5333644,"Zarzour, Adriana","F",13,1,""],[5304440,"Zarzour, Bachir","M",45,1,""],[5304385,"Zarzour, Jad","M",26,1,""],[5316820,"Zbib, Fadi Talal","M",56,1,""],[5323207,"Zeibah, Ali Hassan","M",12,1,""],[5323215,"Zeibah, Yasser","M",11,1,""],[5304717,"Zeidan, Abdel Rahman","M",21,1,""],[5308054,"Zeidan, Abdul Rahman","M",34,1,""],[5333652,"Zeidan, Adam","M",14,1,""],[5311772,"Zeidan, Fawzi","M",15,1,""],[5315158,"Zeidan, Hassan","M",37,1,""],[5305624,"Zeidan, Makram","M",33,1,""],[5333091,"Zeidan, Mohamad Bader","M",12,1,""],[5311306,"Zeidan, Moustafa","M",15,1,""],[5305080,"Zeidan, Omar","M",56,1,""],[5307279,"Zeidan, Saad","M",57,1,""],[5307775,"Zeidan, Saad","M",46,1,""],[5328144,"Zeidan, Samer","M",8,1,""],[5325633,"Zeidan, Sultan","M",16,1,""],[5327717,"Zein Eddine, Majdi","M",22,1,""],[5328152,"Zein Eddine, Nour","F",25,1,""],[5326583,"Zein El Dine, Nour","F",25,1,""],[5310660,"Zein Hachem, Kassem","M",33,1,""],[5310679,"Zeinah, Ahmad","M",31,1,""],[5330068,"Zeinddien, Aline","F",12,1,""],[5319102,"Zeindin, Abbas Joud","M",14,1,""],[5315735,"Zeinedine, Sari Farouk","M",19,1,""],[5311810,"Zeitjian, Dikran","M",42,1,""],[5317282,"Zeitjian,Sarkis","M",9,1,""],[5317177,"Zeitouni, Jad","M",32,0,""],[5330742,"Zeitouni, Raafat","M",34,1,""],[5323223,"Zemaan, Zahi","M",57,1,""],[5330904,"Zeytounian, Elvira","M",22,1,""],[5331080,"Zgheib Kamil Georges","M",9,1,""],[5311314,"Zgheib, Andy","M",17,1,""],[5310431,"Zgheib, Anthony","M",19,1,""],[5309905,"Zgheib, Johnny","M",40,1,""],[5310148,"Zgheib, Marwan","M",59,1,""],[5324793,"Ziade, Tony","M",22,1,""],[5313856,"Ziadeh, Georges Joe","M",21,1,""],[5313473,"Ziadeh, yamen Abduallah","M",65,1,""],[5308860,"Zmrlli, Zahi","M",17,1,""],[5316960,"Zoaiter , Abbas","M",37,1,""],[5301459,"Zoghbi, Jean Paul","M",58,1,""],[5308780,"Zoul, Essam","M",19,1,""],[5315530,"Zrour, Hanna","M",39,1,""],[5316740,"Zrour, Nabil Badoui","M",42,1,""],[5312752,"abed el khalek Hasan Mario","M",21,1,""],[5313619,"al sabagh ,Elias Ghabrial","M",25,1,""],[5312841,"bourghol, Nader","M",25,1,""],[5312698,"el Daher , Yara","F",33,1,""],[5312540,"eljoubbeh,Mohamad Adnan","M",35,1,""],[5312558,"hadla,Mohamad Ali Abdelghani","M",49,1,""],[5316880,"hassoun mohamad","M",19,1,""],[5326001,"jamal,hilal","M",36,1,""],[5313597,"kablaoui, Fouad Fahed","M",19,1,""],[5307635,"khoury, Rabih","M",45,1,""],[5316944,"malwa,salam","F",45,1,""],[5316936,"mawla,salam","F",45,1,""],[5319617,"moghnieh , Ali el hadi","M",39,1,""],[5316952,"nassar,samir","M",57,1,""],[5312523,"rizk,Roy Rabih","M",18,1,""],[5320992,"rrr , hamm","M",43,1,""],[5313937,"saad , Yara","F",20,1,""],[5312620,"salloum,Jad","M",17,1,""],[5307406,"younes, Chris","M",28,1,""],[5307759,"zahwi, Ali","M",46,1,""]];
+    window.__initLbnCharts({ players: players, currentYear: 2026 });
+  });
+</script>
