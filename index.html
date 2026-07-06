@@ -445,30 +445,30 @@
   <section class="stats" aria-label="Summary statistics">
     <div class="stat">
       <span class="stat-value" id="stat-total">3,137</span>
-      <span class="stat-label">FIDE-rated players</span>
+      <span class="stat-label" id="stat-total-label">FIDE-registered players</span>
     </div>
     <div class="stat">
       <span class="stat-value" id="stat-pct-female-all">11.3%</span>
-      <span class="stat-label">female, all players</span>
+      <span class="stat-label" id="stat-pct-female-all-label">female</span>
     </div>
     <div class="stat">
-      <span class="stat-value" id="stat-active-total">2,920</span>
-      <span class="stat-label">active players</span>
+      <span class="stat-value" id="stat-median-male">24</span>
+      <span class="stat-label">median age, male</span>
     </div>
     <div class="stat">
-      <span class="stat-value" id="stat-pct-female-active">11.5%</span>
-      <span class="stat-label">female, active players</span>
+      <span class="stat-value" id="stat-median-female">17</span>
+      <span class="stat-label">median age, female</span>
     </div>
   </section>
 
   <label class="filter-toggle">
     <input type="checkbox" id="toggle-rated" />
     <span class="filter-switch" aria-hidden="true"></span>
-    <span class="filter-label">Only count players who received at least one published rating<br /><span class="filter-sub">excludes registered players with no standard, rapid, or blitz rating</span></span>
+    <span class="filter-label">Only show currently&#8209;active, ever&#8209;rated players<br /><span class="filter-sub">excludes players with no published rating and players FIDE flags inactive</span></span>
   </label>
 
   <section class="chart-card">
-    <h2 class="chart-title">Age distribution &mdash; Lebanon<span>All FIDE-rated players</span></h2>
+    <h2 class="chart-title">Age distribution &mdash; Lebanon</h2>
     <div class="chart-frame">
       <canvas id="chart-all"></canvas>
       <div class="tooltip" id="tooltip-all"></div>
@@ -479,33 +479,18 @@
       <span class="legend-hint">hover for details &middot; click for player list</span>
     </div>
     <div class="panel" id="panel-all"></div>
-    <p class="caption" id="caption-all">All 3,137 FIDE-rated players ever registered under Lebanon, active or not. Median age: 24 (male) vs 17 (female).</p>
-  </section>
-
-  <section class="chart-card">
-    <h2 class="chart-title">Age distribution &mdash; Lebanon<span>Active FIDE-rated players</span></h2>
-    <div class="chart-frame">
-      <canvas id="chart-active"></canvas>
-      <div class="tooltip" id="tooltip-active"></div>
-    </div>
-    <div class="legend">
-      <span class="legend-item"><span class="legend-swatch legend-blue"></span>Male</span>
-      <span class="legend-item"><span class="legend-swatch legend-pink"></span>Female</span>
-      <span class="legend-hint">hover for details &middot; click for player list</span>
-    </div>
-    <div class="panel" id="panel-active"></div>
-    <p class="caption" id="caption-active">The 2,920 players FIDE currently lists as active. Median age: 23 (male) vs 16 (female). 55.7% of active female players are under 18, vs 30.8% of active males.</p>
+    <p class="caption" id="caption-all">All 3,137 FIDE-registered players under Lebanon. Median age: 24 (male) vs 17 (female).</p>
   </section>
 
   <section class="note">
-    <h2>Reading the charts</h2>
+    <h2>Reading the chart</h2>
     <p>Bars are overlapping, not stacked &mdash; the blue (male) bar shows the total for that single age, and the pink (female) bar in front shows how much of that total is female. Where pink fully covers blue, essentially all players at that age are female.</p>
-    <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks, roughly half of active female players are under 18, before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort &mdash; they're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
-    <p>About two&#8209;thirds of Lebanon's "active" players have never received a standard, rapid, or blitz rating &mdash; they hold a FIDE ID but no published rating, so there's no way to confirm from this data alone whether they've ever actually played a rated game. Use the toggle above the charts to see the distribution with only ever&#8209;rated players included.</p>
+    <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort &mdash; they're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
+    <p>About two&#8209;thirds of Lebanon's registered players have never received a standard, rapid, or blitz rating, and a further small share are flagged inactive by FIDE. The toggle above narrows the chart down to players who are both currently active and have actually been rated at some point.</p>
   </section>
 
   <footer>
-    <p>Data: <a href="https://ratings.fide.com/download.phtml" target="_blank" rel="noopener">FIDE ratings list</a>, downloaded 2026&#8209;07&#8209;05. Age = 2026 &minus; FIDE birth year. "Active" follows FIDE's own activity flag (excludes players flagged inactive). Method after <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">davidsmerdon.com</a>.</p>
+    <p>Data: <a href="https://ratings.fide.com/download.phtml" target="_blank" rel="noopener">FIDE ratings list</a>, downloaded 2026&#8209;07&#8209;05. Age = 2026 &minus; FIDE birth year. "Active" follows FIDE's own activity flag. Method after <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">davidsmerdon.com</a>.</p>
   </footer>
 </section>
 
@@ -544,36 +529,32 @@
   function pct(count, total) { return total ? (100 * count / total).toFixed(1) : "0.0"; }
 
   // player row: [fideid, name, sex, age, active(0/1), title, hasRating(0/1)]
-  function histogram(players, activeOnly, maxAge) {
+  function histogram(players, maxAge) {
     var male = new Array(maxAge + 1).fill(0);
     var female = new Array(maxAge + 1).fill(0);
     for (var i = 0; i < players.length; i++) {
       var p = players[i];
-      if (activeOnly && !p[4]) continue;
       if (p[2] === "M") male[p[3]]++; else female[p[3]]++;
     }
     return { male: male, female: female };
   }
 
-  function playersAtAge(players, age, activeOnly) {
+  function playersAtAge(players, age) {
     var out = [];
     for (var i = 0; i < players.length; i++) {
-      var p = players[i];
-      if (p[3] !== age) continue;
-      if (activeOnly && !p[4]) continue;
-      out.push(p);
+      if (players[i][3] === age) out.push(players[i]);
     }
     return out;
   }
 
   function buildChart(opts) {
     var canvas = opts.canvas, tooltip = opts.tooltip, panel = opts.panel;
-    var players = opts.players, activeOnly = opts.activeOnly, currentYear = opts.currentYear;
+    var players = opts.players, showInactiveBadge = opts.showInactiveBadge, currentYear = opts.currentYear;
 
     var maxAge = 0;
     for (var i = 0; i < players.length; i++) maxAge = Math.max(maxAge, players[i][3]);
     maxAge = Math.max(maxAge, 40);
-    var hist = histogram(players, activeOnly, maxAge);
+    var hist = histogram(players, maxAge);
     var male = hist.male, female = hist.female;
 
     var dpr = window.devicePixelRatio || 1;
@@ -711,14 +692,14 @@
         return;
       }
       selectedAge = age;
-      var list = playersAtAge(players, age, activeOnly);
+      var list = playersAtAge(players, age);
       list.sort(function (a, b) { return a[1].localeCompare(b[1]); });
 
       var fCount = list.filter(function (p) { return p[2] === "F"; }).length;
       var rows = list.map(function (p) {
         var fideid = p[0], name = p[1], sex = p[2], active = p[4], title = p[5];
         var swatchClass = sex === "F" ? "row-pink" : "row-blue";
-        var inactiveBadge = (!activeOnly && !active) ? '<span class="row-inactive">inactive</span>' : "";
+        var inactiveBadge = (showInactiveBadge && !active) ? '<span class="row-inactive">inactive</span>' : "";
         var titleBadge = title ? '<span class="row-title">' + title + "</span>" : "";
         return (
           '<a class="player-row" href="https://ratings.fide.com/profile/' + fideid +
@@ -801,33 +782,25 @@
     };
   }
 
-  function updateStats(players) {
+  function updateStats(players, filtered) {
     var male = players.filter(function (p) { return p[2] === "M"; });
     var female = players.filter(function (p) { return p[2] === "F"; });
-    var activePlayers = players.filter(function (p) { return p[4]; });
-    var activeMale = activePlayers.filter(function (p) { return p[2] === "M"; });
-    var activeFemale = activePlayers.filter(function (p) { return p[2] === "F"; });
 
     var el;
     if ((el = document.getElementById("stat-total"))) el.textContent = players.length.toLocaleString();
     if ((el = document.getElementById("stat-pct-female-all"))) el.textContent = pct(female.length, players.length) + "%";
-    if ((el = document.getElementById("stat-active-total"))) el.textContent = activePlayers.length.toLocaleString();
-    if ((el = document.getElementById("stat-pct-female-active"))) el.textContent = pct(activeFemale.length, activePlayers.length) + "%";
-
-    var u18Female = activeFemale.filter(function (p) { return p[3] < 18; }).length;
-    var u18Male = activeMale.filter(function (p) { return p[3] < 18; }).length;
+    if ((el = document.getElementById("stat-median-male"))) el.textContent = fmtAge(median(male.map(function (p) { return p[3]; })));
+    if ((el = document.getElementById("stat-median-female"))) el.textContent = fmtAge(median(female.map(function (p) { return p[3]; })));
+    if ((el = document.getElementById("stat-total-label"))) el.textContent = filtered ? "active, ever-rated players" : "FIDE-registered players";
 
     if ((el = document.getElementById("caption-all"))) {
-      el.innerHTML = "All <strong>" + players.length.toLocaleString() + "</strong> FIDE-rated players ever registered under Lebanon, active or not. Median age: " +
-        fmtAge(median(male.map(function (p) { return p[3]; }))) + " (male) vs " +
-        fmtAge(median(female.map(function (p) { return p[3]; }))) + " (female).";
-    }
-    if ((el = document.getElementById("caption-active"))) {
-      el.innerHTML = "The <strong>" + activePlayers.length.toLocaleString() + "</strong> players FIDE currently lists as active. Median age: " +
-        fmtAge(median(activeMale.map(function (p) { return p[3]; }))) + " (male) vs " +
-        fmtAge(median(activeFemale.map(function (p) { return p[3]; }))) + " (female). " +
-        pct(u18Female, activeFemale.length) + "% of active female players are under 18, vs " +
-        pct(u18Male, activeMale.length) + "% of active males.";
+      el.innerHTML = filtered
+        ? "The <strong>" + players.length.toLocaleString() + "</strong> players who are both currently active and have received at least one published rating. Median age: " +
+          fmtAge(median(male.map(function (p) { return p[3]; }))) + " (male) vs " +
+          fmtAge(median(female.map(function (p) { return p[3]; }))) + " (female)."
+        : "All <strong>" + players.length.toLocaleString() + "</strong> FIDE-registered players under Lebanon. Median age: " +
+          fmtAge(median(male.map(function (p) { return p[3]; }))) + " (male) vs " +
+          fmtAge(median(female.map(function (p) { return p[3]; }))) + " (female).";
     }
   }
 
@@ -836,36 +809,24 @@
     var currentYear = payload.currentYear;
     var toggle = document.getElementById("toggle-rated");
 
-    var specs = [
-      {
-        canvas: document.getElementById("chart-all"),
-        tooltip: document.getElementById("tooltip-all"),
-        panel: document.getElementById("panel-all"),
-        activeOnly: false
-      },
-      {
-        canvas: document.getElementById("chart-active"),
-        tooltip: document.getElementById("tooltip-active"),
-        panel: document.getElementById("panel-active"),
-        activeOnly: true
-      }
-    ];
+    var canvas = document.getElementById("chart-all");
+    var tooltip = document.getElementById("tooltip-all");
+    var panel = document.getElementById("panel-all");
 
     function currentPlayers() {
       if (toggle && toggle.checked) {
-        return allPlayers.filter(function (p) { return p[6]; });
+        return allPlayers.filter(function (p) { return p[4] && p[6]; });
       }
       return allPlayers;
     }
 
     function rebuildAll() {
+      var filtered = !!(toggle && toggle.checked);
       var players = currentPlayers();
-      updateStats(players);
-      specs.forEach(function (s) {
-        buildChart({
-          canvas: s.canvas, tooltip: s.tooltip, panel: s.panel,
-          players: players, activeOnly: s.activeOnly, currentYear: currentYear
-        });
+      updateStats(players, filtered);
+      buildChart({
+        canvas: canvas, tooltip: tooltip, panel: panel,
+        players: players, showInactiveBadge: !filtered, currentYear: currentYear
       });
     }
 
