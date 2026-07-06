@@ -484,7 +484,7 @@
   <header class="masthead">
     <p class="eyebrow">FIDE rating list &middot; July 2026 &middot; Lebanon (LBN)</p>
     <h1>Who Plays Chess in Lebanon</h1>
-    <p class="dek">A local re&#8209;run of David Smerdon's <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">age &amp; gender participation charts</a>, built from the current FIDE players database.</p>
+    <p class="dek">David Smerdon studied age and gender in chess participation worldwide. This page redoes his charts for Lebanon, using the current FIDE ratings database. <a href="https://www.davidsmerdon.com/?p=2075" target="_blank" rel="noopener">Read the original post</a>.</p>
   </header>
 
   <section class="stats" aria-label="Summary statistics">
@@ -513,7 +513,7 @@
   </label>
 
   <section class="chart-card">
-    <h2 class="chart-title">Age distribution &mdash; Lebanon</h2>
+    <h2 class="chart-title">Lebanon age distribution</h2>
     <div class="chart-frame">
       <canvas id="chart-all"></canvas>
       <div class="tooltip" id="tooltip-all"></div>
@@ -529,8 +529,8 @@
 
   <section class="note">
     <h2>Reading the chart</h2>
-    <p>Bars are overlapping, not stacked &mdash; the blue (male) bar shows the total for that single age, and the pink (female) bar in front shows how much of that total is female. Where pink fully covers blue, essentially all players at that age are female.</p>
-    <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort &mdash; they're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
+    <p>Bars are overlapping, not stacked. The blue (male) bar shows the total for that single age, and the pink (female) bar in front shows how much of that total is female. Where pink fully covers blue, essentially all players at that age are female.</p>
+    <p>Lebanon's shape echoes Smerdon's "best" countries for female participation: girls make up a real share of the junior ranks before a familiar drop&#8209;off after the school years. The isolated spikes at 56 and 76 are a data artifact, not a real cohort. They're players whose FIDE record has a placeholder birth year (1970 and 1950) rather than a known one.</p>
     <p>About two&#8209;thirds of Lebanon's registered players have never received a standard, rapid, or blitz rating, and a further small share are flagged inactive by FIDE. The chart defaults to excluding both groups; use the toggle above to bring everyone back in.</p>
   </section>
 
@@ -570,7 +570,7 @@
     return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
   }
 
-  function fmtAge(v) { return v === null ? "—" : (Math.round(v * 10) / 10).toString().replace(/\.0$/, ""); }
+  function fmtAge(v) { return v === null ? "n/a" : (Math.round(v * 10) / 10).toString().replace(/\.0$/, ""); }
   function pct(count, total) { return total ? (100 * count / total).toFixed(1) : "0.0"; }
 
   // player row: [fideid, name, sex, age, active(0/1), title, hasRating(0/1)]
